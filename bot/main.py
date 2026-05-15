@@ -563,25 +563,37 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     @dp.callback_query(SymptomAnalysis.waiting_for_duration, F.data == "back_to_symptoms")
     async def back_to_symptoms(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(SymptomAnalysis.waiting_for_symptoms)
-        await callback.message.edit_text("🟢⚪⚪⚪⚪ **Шаг 1 из 5**\n\n📝 **Опишите ваши симптомы:**\n\nНапишите, что вас беспокоит.")
+        try:
+            await callback.message.edit_text("🟢⚪⚪⚪⚪ **Шаг 1 из 5**\n\n📝 **Опишите ваши симптомы:**\n\nНапишите, что вас беспокоит.")
+        except Exception as e:
+            logger.warning(f"edit_text (back_to_symptoms): {e}")
         await safe_callback_answer(callback)
 
     @dp.callback_query(SymptomAnalysis.waiting_for_temperature, F.data == "back_to_duration")
     async def back_to_duration(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(SymptomAnalysis.waiting_for_duration)
-        await callback.message.edit_text("🟢🟢⚪⚪⚪ **Шаг 2 из 5**\n\n📅 **Как давно появились симптомы?**", reply_markup=get_time_keyboard())
+        try:
+            await callback.message.edit_text("🟢🟢⚪⚪⚪ **Шаг 2 из 5**\n\n📅 **Как давно появились симптомы?**", reply_markup=get_time_keyboard())
+        except Exception as e:
+            logger.warning(f"edit_text (back_to_duration): {e}")
         await safe_callback_answer(callback)
 
     @dp.callback_query(SymptomAnalysis.waiting_for_gender, F.data == "back_to_temp")
     async def back_to_temp(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(SymptomAnalysis.waiting_for_temperature)
-        await callback.message.edit_text("🟢🟢🟢⚪⚪ **Шаг 3 из 5**\n\n🌡️ **Есть ли температура?**", reply_markup=get_temperature_keyboard())
+        try:
+            await callback.message.edit_text("🟢🟢🟢⚪⚪ **Шаг 3 из 5**\n\n🌡️ **Есть ли температура?**", reply_markup=get_temperature_keyboard())
+        except Exception as e:
+            logger.warning(f"edit_text (back_to_temp): {e}")
         await safe_callback_answer(callback)
 
     @dp.callback_query(SymptomAnalysis.waiting_for_age, F.data == "back_to_gender")
     async def back_to_gender(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(SymptomAnalysis.waiting_for_gender)
-        await callback.message.edit_text("🟢🟢🟢🟢⚪ **Шаг 4 из 5**\n\n⚧ **Ваш пол?**", reply_markup=get_gender_keyboard())
+        try:
+            await callback.message.edit_text("🟢🟢🟢🟢⚪ **Шаг 4 из 5**\n\n⚧ **Ваш пол?**", reply_markup=get_gender_keyboard())
+        except Exception as e:
+            logger.warning(f"edit_text (back_to_gender): {e}")
         await safe_callback_answer(callback)
 
     # --- perform_analysis ---
@@ -896,7 +908,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     @dp.callback_query(F.data == "handwriting_new")
     async def handwriting_new(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(HandwritingAnalysis.waiting_for_photo)
-        await callback.message.edit_reply_markup(reply_markup=None)
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception as e:
+            logger.warning(f"edit_reply_markup (handwriting_new): {e}")
         await callback.message.answer("✍️ Отправьте следующее фото рукописного текста.")
         await safe_callback_answer(callback)
 
@@ -1009,7 +1024,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
         await state.update_data(lab_package=package, payment_pay_id=payment.pay_id)
         await state.set_state(LabPayment.waiting_for_payment)
-        await callback.message.edit_reply_markup(reply_markup=None)
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception as e:
+            logger.warning(f"edit_reply_markup (lab_pricing): {e}")
         await callback.message.answer(
             f"💳 **Оплата пакета анализов**\n\n"
             f"📦 Пакет: **{package}** {'анализ' if package == 1 else 'анализов'}\n"
@@ -1177,7 +1195,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     @dp.callback_query(F.data == "lab_new")
     async def lab_new(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
-        await callback.message.edit_reply_markup(reply_markup=None)
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception as e:
+            logger.warning(f"edit_reply_markup (lab_new): {e}")
         lab_bal = await get_lab_balance(callback.from_user.id)
         if lab_bal > 0:
             await state.update_data(using_free=False, using_lab_balance=True, lab_package=0)
@@ -1239,7 +1260,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     @dp.callback_query(F.data == "lab_back_to_menu")
     async def lab_back_to_menu(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
-        await callback.message.edit_reply_markup(reply_markup=None)
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception as e:
+            logger.warning(f"edit_reply_markup (lab_back_to_menu): {e}")
         await callback.message.answer("🩺 Вернулись в меню. Чем помочь?", reply_markup=get_main_keyboard())
         await safe_callback_answer(callback)
 

@@ -78,9 +78,12 @@ async def on_shutdown():
 
 @app.post(WEBHOOK_PATH)
 async def webhook(request: Request):
-    data = await request.json()
-    update = Update.model_validate(data)
-    await dp.feed_update(bot, update)
+    try:
+        data = await request.json()
+        update = Update.model_validate(data)
+        await dp.feed_update(bot, update)
+    except Exception as e:
+        logger.error(f"Webhook handler error: {e}", exc_info=True)
     return {"ok": True}
 
 
