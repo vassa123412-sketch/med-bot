@@ -1,0 +1,150 @@
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+
+
+def get_main_keyboard() -> ReplyKeyboardMarkup:
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="🔍 Анализ симптомов")],
+            [KeyboardButton(text="✍️ Анализ почерка")],
+            [KeyboardButton(text="🎁 Получить бесплатный анализ")],
+            [KeyboardButton(text="💼 Заказать такого бота")],
+            [KeyboardButton(text="🛠 Разработка")],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Выберите действие 👇"
+    )
+    return keyboard
+
+
+def get_time_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Сегодня", callback_data="time_today"),
+                InlineKeyboardButton(text="1-3 дня", callback_data="time_1_3_days"),
+            ],
+            [
+                InlineKeyboardButton(text="Неделю", callback_data="time_week"),
+                InlineKeyboardButton(text="Больше недели", callback_data="time_more"),
+            ],
+        ]
+    )
+    return keyboard
+
+
+def get_temperature_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Нет", callback_data="temp_no"),
+                InlineKeyboardButton(text="До 38°C", callback_data="temp_low"),
+            ],
+            [
+                InlineKeyboardButton(text="38-39°C", callback_data="temp_medium"),
+                InlineKeyboardButton(text="Выше 39°C", callback_data="temp_high"),
+            ],
+        ]
+    )
+    return keyboard
+
+
+def get_gender_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="👨 Мужской", callback_data="gender_male"),
+                InlineKeyboardButton(text="👩 Женский", callback_data="gender_female"),
+            ],
+            [
+                InlineKeyboardButton(text="⬅ Назад", callback_data="back_to_temp"),
+            ],
+        ]
+    )
+    return keyboard
+
+
+def get_age_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="0-17 лет", callback_data="age_0_17"),
+                InlineKeyboardButton(text="18-35 лет", callback_data="age_18_35"),
+            ],
+            [
+                InlineKeyboardButton(text="36-55 лет", callback_data="age_36_55"),
+                InlineKeyboardButton(text="55+ лет", callback_data="age_55_plus"),
+            ],
+            [
+                InlineKeyboardButton(text="⬅ Назад", callback_data="back_to_gender"),
+            ],
+        ]
+    )
+    return keyboard
+
+
+def get_result_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📄 Скачать PDF", callback_data="result_pdf"),
+                InlineKeyboardButton(text="📤 Отправить врачу", callback_data="result_doctor"),
+            ],
+            [
+                InlineKeyboardButton(text="🔍 Новый анализ", callback_data="result_restart"),
+                InlineKeyboardButton(text="📤 Поделиться", callback_data="result_share"),
+            ],
+        ]
+    )
+    return keyboard
+
+
+def get_back_to_menu_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 В меню", callback_data="back_to_menu")],
+        ]
+    )
+    return keyboard
+
+
+def get_handwriting_result_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📄 Скачать PDF", callback_data="handwriting_pdf"),
+                InlineKeyboardButton(text="📤 Поделиться", callback_data="handwriting_share"),
+            ],
+            [
+                InlineKeyboardButton(text="✍️ Новый текст", callback_data="handwriting_new"),
+            ],
+        ]
+    )
+    return keyboard
+
+
+def get_admin_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="👤 Инфо обо мне", callback_data="admin_me"),
+            ],
+            [
+                InlineKeyboardButton(text="🔄 Сбросить мои лимиты", callback_data="admin_reset_me"),
+            ],
+            [
+                InlineKeyboardButton(text="➕ +5 анализов мне", callback_data="admin_addfree_5"),
+                InlineKeyboardButton(text="➕ +10 анализов мне", callback_data="admin_addfree_10"),
+            ],
+            [
+                InlineKeyboardButton(text="👤 Инфо о другом", callback_data="admin_user_other"),
+                InlineKeyboardButton(text="🔄 Сброс другого", callback_data="admin_reset_other"),
+            ],
+            [
+                InlineKeyboardButton(text="📊 Статистика", callback_data="admin_stats"),
+            ],
+            [
+                InlineKeyboardButton(text="❌ Закрыть", callback_data="admin_close"),
+            ],
+        ]
+    )
+    return keyboard

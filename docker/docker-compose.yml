@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  medbot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: med24assistant
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    volumes:
+      - ../data:/app/data
+    ports:
+      - "8080:8080"
+    networks:
+      - medbot-net
+
+networks:
+  medbot-net:
+    driver: bridge

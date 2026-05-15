@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: med-bot
+    runtime: docker
+    repo: https://github.com/vassa123412-sketch/med-bot
+    branch: main
+    dockerfilePath: ./docker/Dockerfile
+    plan: free
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENCODE_ZEN_API_KEY
+        sync: false
+      - key: RENDER_DEPLOY
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: med-bot-db
+          property: connectionString
+
+databases:
+  - name: med-bot-db
+    plan: free
