@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # Telegram API Proxy (Happ VPN)
     proxy_url: str = Field(default="", alias="PROXY_URL")
-    proxy_url_socks: str = Field(default="socks5://127.0.0.1:10809", alias="PROXY_URL_SOCKS")
+    proxy_url_socks: str = Field(default="", alias="PROXY_URL_SOCKS")
 
     # Render.com deploy flag (disables EasyOCR, enables Tesseract)
     render_deploy: bool = Field(default=False, alias="RENDER_DEPLOY")
