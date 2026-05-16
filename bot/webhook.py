@@ -71,7 +71,6 @@ async def on_startup():
 @app.on_event("shutdown")
 async def on_shutdown():
     if bot:
-        await bot.delete_webhook()
         await bot.session.close()
         logger.info("Bot stopped")
 
