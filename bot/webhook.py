@@ -56,16 +56,20 @@ async def on_startup():
     from bot.main import register_all_handlers
     register_all_handlers(dp, bot)
 
-    # Set webhook URL
+    # Set webhook URL (will retry on health check if this fails)
     RENDER_URL = os.getenv("RENDER_EXTERNAL_URL")
-    if not RENDER_URL:
-        logger.warning("RENDER_EXTERNAL_URL not set, using default")
-        RENDER_URL = "https://med-bot.onrender.com"
-    webhook_url = f"{RENDER_URL}{WEBHOOK_PATH}"
-    await bot.set_webhook(webhook_url)
+    if RENDER_URL:
+        webhook_url = f"{RENDER_URL}{WEBHOOK_PATH}"
+        try:
+            await bot.set_webhook(webhook_url)
+            logger.info(f"Webhook set to {webhook_url}")
+        except Exception as e:
+            logger.warning(f"Failed to set webhook on startup: {e}")
+    else:
+        logger.warning("RENDER_EXTERNAL_URL not set, webhook will be set on first health check")
 
     me = await bot.get_me()
-    logger.info(f"Bot @{me.username} started, webhook at {webhook_url}")
+    logger.info(f"Bot @{me.username} started")
 
 
 @app.on_event("shutdown")
