@@ -126,17 +126,19 @@ def get_handwriting_result_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
+STARS_PRICES = {1: 5, 3: 10, 10: 25}
+
 def get_lab_pricing_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="🔬 Базовый — 1 анализ / 99 ₽", callback_data="lab_pricing_1"),
+                InlineKeyboardButton(text="🔬 1 анализ — ⭐5", callback_data="lab_pricing_1"),
             ],
             [
-                InlineKeyboardButton(text="🔥 Оптимальный — 3 анализа / 200 ₽", callback_data="lab_pricing_3"),
+                InlineKeyboardButton(text="🔥 3 анализа — ⭐10", callback_data="lab_pricing_3"),
             ],
             [
-                InlineKeyboardButton(text="💎 Максимальный — 10 анализов / 300 ₽", callback_data="lab_pricing_10"),
+                InlineKeyboardButton(text="💎 10 анализов — ⭐25", callback_data="lab_pricing_10"),
             ],
             [
                 InlineKeyboardButton(text="🔙 В меню", callback_data="lab_back_to_menu"),

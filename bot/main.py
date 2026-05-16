@@ -3,7 +3,7 @@ import logging
 import sys
 import os
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
-from aiogram.types import FSInputFile
+from aiogram.types import FSInputFile, LabeledPrice, PreCheckoutQuery
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
@@ -20,7 +20,7 @@ from bot.keyboards import (
     get_gender_keyboard, get_age_keyboard, get_result_keyboard, get_back_to_menu_keyboard,
     get_handwriting_result_keyboard,
     get_admin_keyboard, get_lab_pricing_keyboard, get_lab_result_keyboard,
-    get_photo_type_keyboard,
+    get_photo_type_keyboard, STARS_PRICES,
 )
 from bot.states import SymptomAnalysis, HandwritingAnalysis, LabAnalysis, AdminActions, LabPayment, WaitingPhotoType
 from reports.pdf_generator import create_pdf_report, create_lab_pdf_report
@@ -1052,33 +1052,69 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     @dp.callback_query(F.data.startswith("lab_pricing_"))
     async def lab_pricing_selection(callback: types.CallbackQuery, state: FSMContext):
         package = int(callback.data.split("_")[2])
-        price_map = {1: 99, 3: 200, 10: 300}
-        amount = price_map.get(package, 99)
+        stars = STARS_PRICES.get(package, 5)
 
         # Create payment record
         payment = await create_payment_record(
             user_id=callback.from_user.id,
-            amount=amount,
+            amount=stars,
             package_size=package,
         )
 
         await state.update_data(lab_package=package, payment_pay_id=payment.pay_id)
-        await state.set_state(LabPayment.waiting_for_payment)
+
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
         except Exception as e:
             logger.warning(f"edit_reply_markup (lab_pricing): {e}")
+
+        # Send Telegram Stars invoice
         await callback.message.answer(
-            f"💳 **Оплата пакета анализов**\n\n"
-            f"📦 Пакет: **{package}** {'анализ' if package == 1 else 'анализов'}\n"
-            f"💰 Сумма: **{amount}₽**\n\n"
-            "🚧 **Оплата временно недоступна.**\n"
-            "Мы подключаем платёжную систему. Как только всё будет готово, "
-            "вы сможете оплатить здесь же в боте.\n\n"
-            "Следите за обновлениями — скоро появится возможность оплаты через Robokassa!",
-            reply_markup=get_payment_keyboard(payment.pay_id),
+            "⏳ Отправляю счёт для оплаты...",
+        )
+        await bot.send_invoice(
+            chat_id=callback.from_user.id,
+            title=f"🔬 Расшифровка анализов ({package} шт)",
+            description=f"Пакет из {package} расшифровок лабораторных анализов.\n"
+                        "Включает: AI-расшифровку, PDF-отчёт, рекомендации.",
+            payload=f"lab_{package}_{payment.pay_id}",
+            currency="XTR",
+            prices=[LabeledPrice(label=f"🔬 {package} {'анализ' if package == 1 else 'анализов'}", amount=stars)],
         )
         await safe_callback_answer(callback)
+
+    # --- Telegram Stars Payments ---
+
+    @dp.pre_checkout_query()
+    async def on_pre_checkout(pre_checkout_query: PreCheckoutQuery):
+        await pre_checkout_query.answer(ok=True)
+
+    @dp.message(F.successful_payment)
+    async def on_successful_payment(message: types.Message, state: FSMContext):
+        payload = message.successful_payment.invoice_payload  # "lab_{package}_{pay_id}"
+        parts = payload.split("_")
+        if len(parts) >= 3:
+            pay_id = "_".join(parts[2:])  # extract pay_id after "lab_{package}_"
+            try:
+                await confirm_payment(pay_id)
+                payment = await get_payment_by_pay_id(pay_id)
+                if payment:
+                    bal = await get_lab_balance(message.from_user.id)
+                    await message.answer(
+                        f"✅ **Оплата прошла успешно!**\n\n"
+                        f"📦 Пакет: **{payment.package_size}** {'анализ' if payment.package_size == 1 else 'анализов'}\n"
+                        f"⭐ Сумма: **{payment.amount} Stars**\n"
+                        f"📊 Ваш баланс: **{bal}** {'анализ' if bal == 1 else 'анализов'}\n\n"
+                        "🔬 Отправьте фото бланка анализов, чтобы начать!",
+                        reply_markup=get_main_keyboard(),
+                    )
+                    return
+            except Exception as e:
+                logger.error(f"Payment confirm failed: {e}")
+        await message.answer(
+            "❌ Ошибка обработки платежа. Обратитесь в поддержку.",
+            reply_markup=get_main_keyboard(),
+        )
 
     async def _process_lab(user_id: int, message: types.Message, state: FSMContext, image_data: bytes):
         """Core lab analysis logic (shared between message and callback handlers)."""
