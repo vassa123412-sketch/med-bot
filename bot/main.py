@@ -13,6 +13,7 @@ from core.config import settings
 from core.database import init_db, get_session, User, Consultation, Payment, check_usage_limit, increment_usage, update_last_symptom_analysis, check_symptom_analysis_cooldown, get_or_create_referral_code, process_referral, get_free_analyses, use_free_analysis, get_referral_stats, grant_bonus_analysis, create_payment_record, get_payment_by_pay_id, confirm_payment, get_lab_balance, use_lab_balance, get_db_stats
 from core.llm_client import llm_client
 from core.rate_limiter import rate_stats
+from core.result_formatter import format_llm_result
 from api.medical_kb import medical_kb
 from bot.keyboards import (
     get_main_keyboard, get_time_keyboard, get_temperature_keyboard,
@@ -652,8 +653,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "1. 🔴 Красные флаги (если есть) — В НАЧАЛЕ\n"
             "2. 📋 Возможные причины (с вероятностью)\n"
             "3. 📊 Уровень срочности\n"
-            "4. 💡 Рекомендации\n"
-            "5. ⚠️ Дисклеймер"
+            "4. 💡 Рекомендации"
         )
 
         try:
@@ -685,7 +685,8 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             # Update last symptom analysis timestamp for cooldown
             await update_last_symptom_analysis(uid)
 
-            await message.answer(response, reply_markup=get_result_keyboard(), parse_mode=None)
+            await message.answer(format_llm_result(response), reply_markup=get_result_keyboard())
+
         except Exception as e:
             logger.error(f"LLM query failed: {e}")
             await message.answer("⚠️ Не удалось провести анализ. Попробуйте позже.", reply_markup=get_main_keyboard())
@@ -868,13 +869,11 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "2. Перескажи содержание текста простым языком.\n"
             "3. Если это медицинские записи (рецепт, назначения, результаты обследований) — "
             "объясни их значение для пациента.\n\n"
-            "НЕ говори «это не медицинский документ» или «это не медицинское заключение». "
-            "Просто перескажи то, что написано на изображении.\n\n"
-            "Отвечай на русском языке."
+            "Без лишних вступлений. Сразу к делу."
         )
         response = await llm_client.query(prompt)
 
-        await message.answer(response, reply_markup=get_handwriting_result_keyboard(), parse_mode=None)
+        await message.answer(format_llm_result(response), reply_markup=get_handwriting_result_keyboard())
 
         try:
             async with get_session() as session_db:
@@ -1101,13 +1100,12 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "2. Для КАЖДОГО отклонения — что это может означать (развёрнуто, но без паники)\n"
             "3. Стоит ли обратиться к врачу и насколько срочно\n\n"
             "Тон — профессиональный, спокойный, информативный. "
-            "Начни с «Здравствуйте. Я внимательно изучил представленные результаты лабораторных исследований.»\n"
-            "Перечисли ВСЕ показатели, выходящие за пределы нормы, даже незначительные.\n"
-            "⚠️ Не ставь диагноз, не назначай лечение."
+            "Без лишних вступлений. Сразу перечисли все показатели, выходящие за пределы нормы, даже незначительные.\n"
+            "Для каждого укажи возможные причины (кратко) и уровень срочности."
         )
         response = await llm_client.query(prompt)
 
-        await message.answer(response, reply_markup=get_lab_result_keyboard(), parse_mode=None)
+        await message.answer(format_llm_result(response), reply_markup=get_lab_result_keyboard())
 
         try:
             async with get_session() as session_db:
