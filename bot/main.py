@@ -1091,17 +1091,18 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
         await state.update_data(ocr_text=ocr_text)
 
-        await message.answer("🧠 Анализирую результаты...")
+        await message.answer(            "🧠 Анализирую результаты...")
         prompt = (
             "Пользователь прислал фото лабораторных анализов. Вот что распознано:\n\n"
             f"{ocr_text}\n\n"
             "Ты — медицинский ассистент. Это лабораторные результаты пациента.\n\n"
-            "Проанализируй результаты и дай резюме:\n"
-            "1. Какие показатели в норме, какие отклоняются\n"
-            "2. Для каждого отклонения — что это может означать (кратко)\n"
-            "3. Стоит ли обратиться к врачу\n\n"
-            "Не перечисляй все показатели подряд. Сфокусируйся на отклонениях и клинически значимых результатах.\n"
-            "Тон — спокойный, профессиональный.\n"
+            "Проанализируй результаты в формате:\n"
+            "1. Общее впечатление — какие показатели в норме, какие отклоняются (перечисли ВСЕ отклонения)\n"
+            "2. Для КАЖДОГО отклонения — что это может означать (развёрнуто, но без паники)\n"
+            "3. Стоит ли обратиться к врачу и насколько срочно\n\n"
+            "Тон — профессиональный, спокойный, информативный. "
+            "Начни с «Здравствуйте. Я внимательно изучил представленные результаты лабораторных исследований.»\n"
+            "Перечисли ВСЕ показатели, выходящие за пределы нормы, даже незначительные.\n"
             "⚠️ Не ставь диагноз, не назначай лечение."
         )
         response = await llm_client.query(prompt)
@@ -1361,36 +1362,39 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
     @dp.callback_query(WaitingPhotoType.choosing, F.data == "photo_type_lab")
     async def photo_type_lab(callback: types.CallbackQuery, state: FSMContext):
+        # Guard: prevent double-processing
         data = await state.get_data()
+        if data.get("processing"):
+            return await safe_callback_answer(callback)
         file_id = data.get("photo_file_id")
         if not file_id:
             await callback.message.answer("❌ Ошибка: фото не найдено. Отправьте заново.")
             await state.clear()
             return await safe_callback_answer(callback)
-        await state.update_data(using_free=False, lab_package=0)
+        await state.update_data(using_free=False, lab_package=0, processing=True)
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
         except Exception:
             pass
         await safe_callback_answer(callback)
-        # Forward to lab processor with saved file_id
         await process_lab_file_from_id(callback.message, file_id, state)
 
     @dp.callback_query(WaitingPhotoType.choosing, F.data == "photo_type_handwriting")
     async def photo_type_handwriting(callback: types.CallbackQuery, state: FSMContext):
         data = await state.get_data()
+        if data.get("processing"):
+            return await safe_callback_answer(callback)
         file_id = data.get("photo_file_id")
         if not file_id:
             await callback.message.answer("❌ Ошибка: фото не найдено. Отправьте заново.")
             await state.clear()
             return await safe_callback_answer(callback)
-        await state.update_data(using_free=False)
+        await state.update_data(using_free=False, processing=True)
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
         except Exception:
             pass
         await safe_callback_answer(callback)
-        # Forward to handwriting processor with saved file_id
         await process_handwriting_from_id(callback.from_user.id, callback.message, file_id, state)
 
     @dp.message(F.voice | F.video | F.video_note | F.animation)
