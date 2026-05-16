@@ -19,8 +19,9 @@ from bot.keyboards import (
     get_gender_keyboard, get_age_keyboard, get_result_keyboard, get_back_to_menu_keyboard,
     get_handwriting_result_keyboard,
     get_admin_keyboard, get_lab_pricing_keyboard, get_lab_result_keyboard,
+    get_photo_type_keyboard,
 )
-from bot.states import SymptomAnalysis, HandwritingAnalysis, LabAnalysis, AdminActions, LabPayment
+from bot.states import SymptomAnalysis, HandwritingAnalysis, LabAnalysis, AdminActions, LabPayment, WaitingPhotoType
 from reports.pdf_generator import create_pdf_report, create_lab_pdf_report
 
 logging.basicConfig(
@@ -1340,18 +1341,63 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
                 reply_markup=get_main_keyboard(),
             )
 
-    # --- QA: Unsupported Media ---
+    # --- Photo without context: save to state → choose type via inline buttons ---
 
     @dp.message(F.photo)
-    async def photo_without_context(message: types.Message):
+    async def photo_without_context(message: types.Message, state: FSMContext):
+        # Save the file_id and file_unique_id so we can download later
+        await state.update_data(
+            photo_file_id=message.photo[-1].file_id,
+            photo_file_unique_id=message.photo[-1].file_unique_id,
+        )
+        await state.set_state(WaitingPhotoType.choosing)
         await message.answer(
             "📸 **Фото получено**\n\n"
-            "Выберите, что хотите сделать:\n"
-            "• **🔬 Расшифровка анализов** — разобрать бланк с анализами\n"
-            "• **✍️ Анализ почерка** — распознать рукописный текст\n\n"
-            "Нажмите нужную кнопку в меню 👇",
-            reply_markup=get_main_keyboard(),
+            "Выберите, что хотите сделать:",
+            reply_markup=get_photo_type_keyboard(),
         )
+
+    @dp.callback_query(WaitingPhotoType.choosing, F.data == "photo_type_lab")
+    async def photo_type_lab(callback: types.CallbackQuery, state: FSMContext):
+        data = await state.get_data()
+        file_id = data.get("photo_file_id")
+        if not file_id:
+            await callback.message.answer("❌ Ошибка: фото не найдено. Отправьте заново.")
+            await state.clear()
+            return await safe_callback_answer(callback)
+        await state.update_data(using_free=False, lab_package=0)
+        await state.set_state(LabAnalysis.waiting_for_file)
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception:
+            pass
+        await callback.message.answer(
+            "🔬 **Расшифровка анализов**\n\n"
+            "Отправьте **фото** лабораторных результатов, и я расшифрую их.\n\n"
+            "📸 Если вы уже отправили фото выше — отправьте его ещё раз.",
+        )
+        await safe_callback_answer(callback)
+
+    @dp.callback_query(WaitingPhotoType.choosing, F.data == "photo_type_handwriting")
+    async def photo_type_handwriting(callback: types.CallbackQuery, state: FSMContext):
+        data = await state.get_data()
+        file_id = data.get("photo_file_id")
+        if not file_id:
+            await callback.message.answer("❌ Ошибка: фото не найдено. Отправьте заново.")
+            await state.clear()
+            return await safe_callback_answer(callback)
+        await state.update_data(using_free=False)
+        await state.set_state(HandwritingAnalysis.waiting_for_photo)
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception:
+            pass
+        await callback.message.answer(
+            "✍️ **Анализ почерка**\n\n"
+            "Отправьте **фото** рукописного текста, и я распознаю его.\n\n"
+            "📸 Если вы уже отправили фото выше — отправьте его ещё раз.",
+        )
+        await safe_callback_answer(callback)
 
     @dp.message(F.voice | F.video | F.video_note | F.animation)
     async def unsupported_media(message: types.Message):

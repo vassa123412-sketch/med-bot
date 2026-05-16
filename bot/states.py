@@ -30,3 +30,7 @@ class LabPayment(StatesGroup):
     waiting_for_payment = State()
     waiting_for_user_id_addfree = State()
     waiting_for_addfree_count = State()
+
+
+class WaitingPhotoType(StatesGroup):
+    choosing = State()

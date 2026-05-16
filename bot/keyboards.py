@@ -184,6 +184,20 @@ def get_payment_loading_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
+def get_photo_type_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🔬 Расшифровка анализов", callback_data="photo_type_lab"),
+            ],
+            [
+                InlineKeyboardButton(text="✍️ Анализ почерка", callback_data="photo_type_handwriting"),
+            ],
+        ]
+    )
+    return keyboard
+
+
 def get_admin_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
