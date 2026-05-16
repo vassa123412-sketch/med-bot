@@ -4,41 +4,36 @@
 
 **При старте НОВОГО чата** (когда контекст пуст) — первым делом прочитать `MEMORY.md` и этот файл.
 
+## Режим работы: ONLINE
+
+Бот **уже запущен** на Render.com по адресу `https://med-bot-50on.onrender.com`.
+Все изменения кода после сохранения нужно **коммитить и пушить** — Render сам подхватит и перезапустит.
+
+```
+git add -A
+git commit -m "описание"
+git push
+```
+
 ## Автопроверка логов при ошибках
 
-Если бот падает или пользователь сообщает об ошибке:
+Если бот падает или пользователь сообщает об ошибке — логи на Render через Dashboard → Logs.
+Локальные логи недоступны.
 
-1. **Первым делом** прочитай `logs/errors.log` — там последние ошибки
-2. **Затем** прочитай конец `logs/bot.log` — полный контекст
-3. **НЕ задавай вопросы** — сам анализируй логи и чини
+## Стек (актуальный)
 
-```
-# Команды для чтения логов:
-read logs/errors.log
-read logs/bot.log (offset=последние 50 строк)
-```
-
-## Стек
-
-- **Язык**: Python 3.14
-- **Фреймворк**: aiogram 3.27.0
-- **LLM**: Groq (llama-3.3-70b) → OpenRouter (qwen-2.5-72b) fallback
-- **OCR**: EasyOCR (ленивая загрузка)
-- **БД**: SQLite + SQLAlchemy (async)
-- **Прокси**: HTTP `http://127.0.0.1:10809` (Happ VPN)
-- **Запуск**: `python start.py` (НЕ .bat)
-
-## Настройка прокси
-
-- **HTTP**: `PROXY_URL=http://127.0.0.1:10809` — РАБОТАЕТ
-- **SOCKS5**: `PROXY_URL_SOCKS=socks5://127.0.0.1:10809` — ТАЙМАУТ (не работает)
-- `AiohttpSession(proxy=...)` — принимает строку URL
-- Кастомный `ClientTimeout` НЕ использовать — конфликтует с aiogram
+- **Язык**: Python 3.12-slim
+- **Фреймворк**: aiogram 3.27.0 + FastAPI + uvicorn
+- **LLM**: Gemini 2.0 Flash → OpenRouter DeepSeek V4 Flash → OpenCode Zen Big Pickle
+- **OCR**: Tesseract (на Render) / EasyOCR (локально)
+- **БД**: SQLite + SQLAlchemy async (переезд на PostgreSQL в планах)
+- **Прокси**: не используется на Render (пустые PROXY_URL)
+- **Запуск**: uvicorn bot.webhook:app (через Docker, порт 8080)
+- **Webhook**: Telegram webhook на `/webhook/{token}`
+- **Health-check**: `/health`
 
 ## Запрещено
 
-- ❌ Коммитить без разрешения
-- ❌ Менять .env (кроме прокси)
-- ❌ Удалять логи
-- ❌ Использовать английский в ответах бота
+- ❌ Менять .env
 - ❌ Комментировать код
+- ❌ Использовать английский в ответах бота
