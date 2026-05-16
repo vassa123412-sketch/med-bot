@@ -10,7 +10,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from core.config import settings
-from core.database import init_db, get_session, User, Consultation, Payment, check_usage_limit, increment_usage, update_last_symptom_analysis, check_symptom_analysis_cooldown, get_or_create_referral_code, process_referral, get_free_analyses, use_free_analysis, get_referral_stats, grant_bonus_analysis, create_payment_record, get_payment_by_pay_id, confirm_payment, get_lab_balance, use_lab_balance
+from core.database import init_db, get_session, User, Consultation, Payment, check_usage_limit, increment_usage, update_last_symptom_analysis, check_symptom_analysis_cooldown, get_or_create_referral_code, process_referral, get_free_analyses, use_free_analysis, get_referral_stats, grant_bonus_analysis, create_payment_record, get_payment_by_pay_id, confirm_payment, get_lab_balance, use_lab_balance, get_db_stats
 from core.llm_client import llm_client
 from core.rate_limiter import rate_stats
 from api.medical_kb import medical_kb
@@ -162,12 +162,21 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         active_1h = rate_stats.get_active_users(3600)
         top_users = rate_stats.get_top_users(10, 3600)
 
+        db_stats = await get_db_stats()
+
         lines = [
             "📊 **Статистика бота**",
             "",
-            "**Запросы:**",
-            f"  · за час: {last_hour_req}",
-            f"  · за сутки: {last_day_req}",
+            "**📦 База данных:**",
+            f"  · Всего пользователей: {db_stats['total_users']}",
+            f"  · Новых сегодня: {db_stats['today_users']}",
+            f"  · Всего консультаций: {db_stats['total_consultations']}",
+            f"  · Консультаций сегодня: {db_stats['today_consultations']}",
+            f"  · Активных сегодня: {db_stats['active_today']}",
+            "",
+            "**⚡ Rate лимиты (in-memory):**",
+            f"  · запросов за час: {last_hour_req}",
+            f"  · запросов за сутки: {last_day_req}",
             "",
             "**Активные пользователи:**",
             f"  · за 5 мин: {active_5m}",
@@ -183,7 +192,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
         lines.extend([
             "",
-            f"⚙️ Лимит: {rate_stats.limit} запр./{rate_stats.window}с",
+            f"⚙️ Rate лимит: {rate_stats.limit} запр./{rate_stats.window}с",
         ])
         await message.answer("\n".join(lines))
 
@@ -383,12 +392,21 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         active_1h = rate_stats.get_active_users(3600)
         top_users = rate_stats.get_top_users(10, 3600)
 
+        db_stats = await get_db_stats()
+
         lines = [
             "📊 **Статистика бота**",
             "",
-            "**Запросы:**",
-            f"  · за час: {last_hour_req}",
-            f"  · за сутки: {last_day_req}",
+            "**📦 База данных:**",
+            f"  · Всего пользователей: {db_stats['total_users']}",
+            f"  · Новых сегодня: {db_stats['today_users']}",
+            f"  · Всего консультаций: {db_stats['total_consultations']}",
+            f"  · Консультаций сегодня: {db_stats['today_consultations']}",
+            f"  · Активных сегодня: {db_stats['active_today']}",
+            "",
+            "**⚡ Rate лимиты (in-memory):**",
+            f"  · запросов за час: {last_hour_req}",
+            f"  · запросов за сутки: {last_day_req}",
             "",
             "**Активные пользователи:**",
             f"  · за 5 мин: {active_5m}",
@@ -477,22 +495,26 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     async def process_symptoms(message: types.Message, state: FSMContext):
         text = message.text.strip()
 
-        # --- Check Free Analyses first, then daily limit ---
-        free_count = await get_free_analyses(message.from_user.id)
-        if free_count > 0:
-            await state.update_data(using_free=True)
-        else:
+        # --- Admin bypasses all limits ---
+        if is_admin(message.from_user.id):
             await state.update_data(using_free=False)
-            can_proceed, count = await check_usage_limit(message.from_user.id)
-            if not can_proceed:
-                await state.clear()
-                await message.answer(
-                    "⚠️ Вы исчерпали ежедневный лимит бесплатных анализов (3/3).\n\n"
-                    "🔹 Попробуйте завтра — лимит обновится в 00:00\n"
-                    "🔹 Или пригласите друга по реферальной ссылке (🎁 в меню)",
-                    reply_markup=get_main_keyboard(),
-                )
-                return
+        else:
+            # --- Check Free Analyses first, then daily limit ---
+            free_count = await get_free_analyses(message.from_user.id)
+            if free_count > 0:
+                await state.update_data(using_free=True)
+            else:
+                await state.update_data(using_free=False)
+                can_proceed, count = await check_usage_limit(message.from_user.id)
+                if not can_proceed:
+                    await state.clear()
+                    await message.answer(
+                        "⚠️ Вы исчерпали ежедневный лимит бесплатных анализов (3/3).\n\n"
+                        "🔹 Попробуйте завтра — лимит обновится в 00:00\n"
+                        "🔹 Или пригласите друга по реферальной ссылке (🎁 в меню)",
+                        reply_markup=get_main_keyboard(),
+                    )
+                    return
 
         # --- Emergency Detection ---
         EMERGENCY_KEYWORDS = [
@@ -651,12 +673,13 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             except Exception as db_err:
                 logger.error(f"DB save failed: {db_err}")
 
-            # Increment usage counter or use free analysis
+            # Increment usage counter or use free analysis (skip for admin)
             data = await state.get_data()
-            if data.get('using_free'):
-                await use_free_analysis(uid)
-            else:
-                await increment_usage(uid)
+            if not is_admin(uid):
+                if data.get('using_free'):
+                    await use_free_analysis(uid)
+                else:
+                    await increment_usage(uid)
 
             # Update last symptom analysis timestamp for cooldown
             await update_last_symptom_analysis(uid)
@@ -798,20 +821,24 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
     @dp.message(F.text == "✍️ Анализ почерка")
     async def start_handwriting_analysis(message: types.Message, state: FSMContext):
-        # Check free analyses
-        free_count = await get_free_analyses(message.from_user.id)
-        if free_count > 0:
-            await state.update_data(using_free=True)
+        # Admin bypasses all limits
+        if is_admin(message.from_user.id):
+            await state.update_data(using_free=False)
         else:
-            can_proceed, count = await check_usage_limit(message.from_user.id)
-            if not can_proceed:
-                await message.answer(
-                    "⚠️ Вы исчерпали ежедневный лимит бесплатных анализов (3/3).\n\n"
-                    "🔹 Попробуйте завтра — лимит обновится в 00:00\n"
-                    "🔹 Или пригласите друга по реферальной ссылке (🎁 в меню)",
-                    reply_markup=get_main_keyboard(),
-                )
-                return
+            # Check free analyses
+            free_count = await get_free_analyses(message.from_user.id)
+            if free_count > 0:
+                await state.update_data(using_free=True)
+            else:
+                can_proceed, count = await check_usage_limit(message.from_user.id)
+                if not can_proceed:
+                    await message.answer(
+                        "⚠️ Вы исчерпали ежедневный лимит бесплатных анализов (3/3).\n\n"
+                        "🔹 Попробуйте завтра — лимит обновится в 00:00\n"
+                        "🔹 Или пригласите друга по реферальной ссылке (🎁 в меню)",
+                        reply_markup=get_main_keyboard(),
+                    )
+                    return
 
         await state.set_state(HandwritingAnalysis.waiting_for_photo)
         await message.answer(
@@ -872,12 +899,13 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             except Exception as db_err:
                 logger.error(f"Handwriting DB save failed: {db_err}")
 
-            # Use free analysis or increment
+            # Use free analysis or increment (skip for admin)
             data_state = await state.get_data()
-            if data_state.get('using_free'):
-                await use_free_analysis(message.from_user.id)
-            else:
-                await increment_usage(message.from_user.id)
+            if not is_admin(message.from_user.id):
+                if data_state.get('using_free'):
+                    await use_free_analysis(message.from_user.id)
+                else:
+                    await increment_usage(message.from_user.id)
 
         except ValueError:
             await message.answer(
@@ -958,6 +986,19 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
     @dp.message(F.text == "🔬 Расшифровка анализов")
     async def start_lab_analysis(message: types.Message, state: FSMContext):
+        # Admin bypasses all limits
+        if is_admin(message.from_user.id):
+            await state.update_data(using_free=False, lab_package=0)
+            await state.set_state(LabAnalysis.waiting_for_file)
+            await message.answer(
+                "🔬 **Расшифровка анализов**\n\n"
+                "👑 Администратор — доступ без лимитов.\n\n"
+                "Отправьте **фото** лабораторных результатов, и я расшифрую их.\n\n"
+                "📸 Сфотографируйте бланк при хорошем освещении.\n"
+                "⚠️ Я распознаю печатный текст.",
+            )
+            return
+
         # 1. Check purchased lab balance first
         lab_bal = await get_lab_balance(message.from_user.id)
         if lab_bal > 0:
@@ -1089,10 +1130,11 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
                 logger.error(f"Lab analysis DB save failed: {db_err}")
 
             data_state = await state.get_data()
-            if data_state.get('using_free'):
-                await use_free_analysis(message.from_user.id)
-            else:
-                await increment_usage(message.from_user.id)
+            if not is_admin(message.from_user.id):
+                if data_state.get('using_free'):
+                    await use_free_analysis(message.from_user.id)
+                else:
+                    await increment_usage(message.from_user.id)
 
         except ValueError:
             await message.answer(

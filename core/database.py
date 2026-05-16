@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Column, Integer, String, BigInteger, DateTime, Text, Boolean, func, select, update, text
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from core.config import settings
 import logging
 
@@ -73,7 +73,12 @@ async def check_usage_limit(telegram_id: int) -> tuple[bool, int]:
     Проверяет лимиты пользователя.
     Возвращает (can_proceed, current_count).
     Лимит: 3 бесплатных запроса в день.
+    Для админа — безлимитно.
     """
+    # Админ — безлимит
+    if settings.admin_id and telegram_id == settings.admin_id:
+        return True, 0
+
     async with async_session() as session:
         result = await session.execute(select(User).filter(User.telegram_id == telegram_id))
         user = result.scalar_one_or_none()
@@ -361,4 +366,39 @@ async def get_referral_stats(telegram_id: int) -> dict:
         total_referred = result.scalar() or 0
         return {
             "total_referred": total_referred,
-}
+        }
+
+
+# --- Admin Stats ---
+
+async def get_db_stats() -> dict:
+    """Возвращает расширенную статистику из БД для админ-панели."""
+    async with async_session() as session:
+        total_users = (await session.execute(select(func.count()).select_from(User))).scalar() or 0
+
+        today_start = datetime.combine(date.today(), datetime.min.time())
+        today_users = (await session.execute(
+            select(func.count()).select_from(User).where(User.created_at >= today_start)
+        )).scalar() or 0
+
+        total_consultations = (await session.execute(
+            select(func.count()).select_from(Consultation)
+        )).scalar() or 0
+
+        today_consultations = (await session.execute(
+            select(func.count()).select_from(Consultation).where(Consultation.created_at >= today_start)
+        )).scalar() or 0
+
+        active_today = (await session.execute(
+            select(func.count()).select_from(User).where(
+                User.last_request_date >= today_start
+            )
+        )).scalar() or 0
+
+        return {
+            "total_users": total_users,
+            "today_users": today_users,
+            "total_consultations": total_consultations,
+            "today_consultations": today_consultations,
+            "active_today": active_today,
+        }
