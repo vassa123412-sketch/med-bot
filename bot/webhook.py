@@ -90,6 +90,10 @@ async def webhook(request: Request):
     return {"ok": True}
 
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "med-bot"}
+
 @app.get("/health")
 async def health():
     return {

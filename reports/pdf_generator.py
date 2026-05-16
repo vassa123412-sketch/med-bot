@@ -24,30 +24,41 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# Register Arial fonts for Cyrillic support
+# Register fonts for Cyrillic support
+_fonts_registered = False
 try:
-    windir = os.environ.get('SystemRoot', 'C:/Windows')
-    font_dir = os.path.join(windir, 'Fonts')
-    # Define font files
-    font_files = [
-        ('Arial', os.path.join(font_dir, 'arial.ttf')),
-        ('ArialBold', os.path.join(font_dir, 'arialbd.ttf')),
-        ('ArialItalic', os.path.join(font_dir, 'ariali.ttf')),
-        ('ArialBoldItalic', os.path.join(font_dir, 'arialbi.ttf'))
-    ]
-    # Register each font
+    if os.name == 'nt':
+        # Windows — use Arial from system
+        windir = os.environ.get('SystemRoot', 'C:/Windows')
+        font_dir = os.path.join(windir, 'Fonts')
+        font_files = [
+            ('Arial', os.path.join(font_dir, 'arial.ttf')),
+            ('ArialBold', os.path.join(font_dir, 'arialbd.ttf')),
+            ('ArialItalic', os.path.join(font_dir, 'ariali.ttf')),
+            ('ArialBoldItalic', os.path.join(font_dir, 'arialbi.ttf'))
+        ]
+    else:
+        # Linux — use DejaVu (supports Cyrillic)
+        font_dir = '/usr/share/fonts/truetype/dejavu/'
+        font_files = [
+            ('Arial', os.path.join(font_dir, 'DejaVuSans.ttf')),
+            ('ArialBold', os.path.join(font_dir, 'DejaVuSans-Bold.ttf')),
+            ('ArialItalic', os.path.join(font_dir, 'DejaVuSans-Oblique.ttf')),
+            ('ArialBoldItalic', os.path.join(font_dir, 'DejaVuSans-BoldOblique.ttf')),
+        ]
     for font_name, font_path in font_files:
         if os.path.exists(font_path):
             pdfmetrics.registerFont(TTFont(font_name, font_path))
+            _fonts_registered = True
             logger.debug(f"Registered font '{font_name}' from {font_path}")
         else:
             logger.warning(f"Font file not found: {font_path}")
-    logger.info("Arial fonts registration attempted")
 except Exception as e:
-    logger.warning(f'Failed to register Arial fonts: {e}. Falling back to default fonts.')
+    logger.warning(f'Failed to register Cyrillic fonts: {e}.')
+logger.info(f"Cyrillic fonts registration {'OK' if _fonts_registered else 'FAILED'}")
 
 # Set matplotlib font to support Cyrillic
-plt.rcParams['font.family'] = 'Arial'
+plt.rcParams['font.family'] = 'DejaVu Sans' if os.name != 'nt' else 'Arial'
 plt.rcParams['font.size'] = 10
 
 REPORTS_DIR = Path("data/reports")
