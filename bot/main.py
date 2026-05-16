@@ -849,65 +849,60 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "⚠️ Я распознаю русский и английский текст."
         )
 
-    @dp.message(HandwritingAnalysis.waiting_for_photo, F.photo)
-    async def process_handwriting_photo(message: types.Message, state: FSMContext):
+    async def _process_handwriting(user_id: int, message: types.Message, state: FSMContext, image_data: bytes):
+        """Core handwriting processing logic (shared between message and callback handlers)."""
+        await state.update_data(image_bytes=image_data)
+        await message.answer("🔍 Распознаю текст... _(до 30 секунд)_")
+
+        ocr_text = await llm_client.extract_text_from_image_openrouter(image_data)
+        if not ocr_text.strip():
+            raise ValueError("No text recognized")
+
+        await state.update_data(ocr_text=ocr_text)
+        await message.answer("🧠 Анализирую содержание...")
+        prompt = (
+            "Пользователь прислал изображение с текстом. Вот что удалось распознать:\n\n"
+            f"{ocr_text}\n\n"
+            "Твоя задача:\n"
+            "1. Восстанови и исправь ошибки распознавания, если они очевидны.\n"
+            "2. Перескажи содержание текста простым языком.\n"
+            "3. Если это медицинские записи (рецепт, назначения, результаты обследований) — "
+            "объясни их значение для пациента.\n\n"
+            "НЕ говори «это не медицинский документ» или «это не медицинское заключение». "
+            "Просто перескажи то, что написано на изображении.\n\n"
+            "Отвечай на русском языке."
+        )
+        response = await llm_client.query(prompt)
+
+        await message.answer(response, reply_markup=get_handwriting_result_keyboard(), parse_mode=None)
+
+        try:
+            async with get_session() as session_db:
+                consultation = Consultation(
+                    user_id=user_id,
+                    symptoms="Рукописный текст: " + ocr_text[:2000],
+                    response=response,
+                    triage_level=None
+                )
+                session_db.add(consultation)
+                await session_db.commit()
+        except Exception as db_err:
+            logger.error(f"Handwriting DB save failed: {db_err}")
+
+        data_state = await state.get_data()
+        if not is_admin(user_id):
+            if data_state.get('using_free'):
+                await use_free_analysis(user_id)
+            else:
+                await increment_usage(user_id)
+
+    async def process_handwriting_from_id(user_id: int, message: types.Message, file_id: str, state: FSMContext):
+        """Download photo by file_id and process handwriting."""
         await message.answer("📥 Загружаю фото...")
         try:
-            file = await bot.get_file(message.photo[-1].file_id)
+            file = await bot.get_file(file_id)
             image_data = (await bot.download_file(file.file_path)).read()
-            await state.update_data(image_bytes=image_data)
-
-            await message.answer("🔍 Распознаю текст... _(до 30 секунд)_")
-
-            # Use OpenRouter Vision for handwriting
-            ocr_text = await llm_client.extract_text_from_image_openrouter(image_data)
-            if not ocr_text.strip():
-                raise ValueError("No text recognized")
-
-            await state.update_data(ocr_text=ocr_text)
-
-            # Analyze the extracted text immediately
-            await message.answer("🧠 Анализирую содержание...")
-            prompt = (
-                "Пользователь прислал изображение с текстом. Вот что удалось распознать:\n\n"
-                f"{ocr_text}\n\n"
-                "Твоя задача:\n"
-                "1. Восстанови и исправь ошибки распознавания, если они очевидны.\n"
-                "2. Перескажи содержание текста простым языком.\n"
-                "3. Если это медицинские записи (рецепт, назначения, результаты обследований) — "
-                "объясни их значение для пациента.\n\n"
-                "НЕ говори «это не медицинский документ» или «это не медицинское заключение». "
-                "Просто перескажи то, что написано на изображении.\n\n"
-                "Отвечай на русском языке."
-            )
-
-            response = await llm_client.query(prompt)
-
-            # Show result to user first (always works even if DB fails)
-            await message.answer(response, reply_markup=get_handwriting_result_keyboard(), parse_mode=None)
-
-            # Save to DB (best-effort, after showing result)
-            try:
-                async with get_session() as session_db:
-                    consultation = Consultation(
-                        user_id=message.from_user.id,
-                        symptoms="Рукописный текст: " + ocr_text[:2000],
-                        response=response,
-                        triage_level=None
-                    )
-                    session_db.add(consultation)
-                    await session_db.commit()
-            except Exception as db_err:
-                logger.error(f"Handwriting DB save failed: {db_err}")
-
-            # Use free analysis or increment (skip for admin)
-            data_state = await state.get_data()
-            if not is_admin(message.from_user.id):
-                if data_state.get('using_free'):
-                    await use_free_analysis(message.from_user.id)
-                else:
-                    await increment_usage(message.from_user.id)
-
+            await _process_handwriting(user_id, message, state, image_data)
         except ValueError:
             await message.answer(
                 "⚠️ Не удалось распознать текст.\n\n"
@@ -922,6 +917,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             await message.answer("⚠️ Что-то пошло не так. Попробуйте ещё раз.", reply_markup=get_main_keyboard())
         finally:
             await state.clear()
+
+    @dp.message(HandwritingAnalysis.waiting_for_photo, F.photo)
+    async def process_handwriting_photo(message: types.Message, state: FSMContext):
+        await process_handwriting_from_id(message.from_user.id, message, message.photo[-1].file_id, state)
 
     @dp.message(HandwritingAnalysis.waiting_for_photo)
     async def handwriting_invalid_file(message: types.Message):
@@ -1082,61 +1081,60 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         )
         await safe_callback_answer(callback)
 
-    @dp.message(LabAnalysis.waiting_for_file, F.photo)
-    async def process_lab_file(message: types.Message, state: FSMContext):
+    async def _process_lab(user_id: int, message: types.Message, state: FSMContext, image_data: bytes):
+        """Core lab analysis logic (shared between message and callback handlers)."""
+        await message.answer("🔍 Распознаю текст через OCR... _(до 30 секунд)_")
+
+        ocr_text = await llm_client.extract_text_from_image_openrouter(image_data)
+        if not ocr_text.strip():
+            raise ValueError("No text recognized")
+
+        await state.update_data(ocr_text=ocr_text)
+
+        await message.answer("🧠 Анализирую результаты...")
+        prompt = (
+            "Пользователь прислал фото лабораторных анализов. Вот что распознано:\n\n"
+            f"{ocr_text}\n\n"
+            "Ты — медицинский ассистент. Это лабораторные результаты пациента.\n\n"
+            "Проанализируй результаты и дай резюме:\n"
+            "1. Какие показатели в норме, какие отклоняются\n"
+            "2. Для каждого отклонения — что это может означать (кратко)\n"
+            "3. Стоит ли обратиться к врачу\n\n"
+            "Не перечисляй все показатели подряд. Сфокусируйся на отклонениях и клинически значимых результатах.\n"
+            "Тон — спокойный, профессиональный.\n"
+            "⚠️ Не ставь диагноз, не назначай лечение."
+        )
+        response = await llm_client.query(prompt)
+
+        await message.answer(response, reply_markup=get_lab_result_keyboard(), parse_mode=None)
+
+        try:
+            async with get_session() as session_db:
+                consultation = Consultation(
+                    user_id=user_id,
+                    symptoms="Лабораторные анализы:\n" + ocr_text[:3000],
+                    response=response,
+                    triage_level=None
+                )
+                session_db.add(consultation)
+                await session_db.commit()
+        except Exception as db_err:
+            logger.error(f"Lab analysis DB save failed: {db_err}")
+
+        data_state = await state.get_data()
+        if not is_admin(user_id):
+            if data_state.get('using_free'):
+                await use_free_analysis(user_id)
+            else:
+                await increment_usage(user_id)
+
+    async def process_lab_file_from_id(message: types.Message, file_id: str, state: FSMContext):
+        """Download photo by file_id and process lab analysis."""
         await message.answer("📥 Загружаю фото...")
         try:
-            file = await bot.get_file(message.photo[-1].file_id)
+            file = await bot.get_file(file_id)
             image_data = (await bot.download_file(file.file_path)).read()
-
-            await message.answer("🔍 Распознаю текст через OCR... _(до 30 секунд)_")
-
-            ocr_text = await llm_client.extract_text_from_image_openrouter(image_data)
-            if not ocr_text.strip():
-                raise ValueError("No text recognized")
-
-            await state.update_data(ocr_text=ocr_text)
-
-            await message.answer("🧠 Анализирую результаты...")
-            prompt = (
-                "Пользователь прислал фото лабораторных анализов. Вот что распознано:\n\n"
-                f"{ocr_text}\n\n"
-                "Ты — медицинский ассистент. Это лабораторные результаты пациента.\n\n"
-                "Проанализируй результаты и дай резюме:\n"
-                "1. Какие показатели в норме, какие отклоняются\n"
-                "2. Для каждого отклонения — что это может означать (кратко)\n"
-                "3. Стоит ли обратиться к врачу\n\n"
-                "Не перечисляй все показатели подряд. Сфокусируйся на отклонениях и клинически значимых результатах.\n"
-                "Тон — спокойный, профессиональный.\n"
-                "⚠️ Не ставь диагноз, не назначай лечение."
-            )
-
-            response = await llm_client.query(prompt)
-
-            # Show result to user first (always works even if DB fails)
-            await message.answer(response, reply_markup=get_lab_result_keyboard(), parse_mode=None)
-
-            # Save to DB (best-effort, after showing result)
-            try:
-                async with get_session() as session_db:
-                    consultation = Consultation(
-                        user_id=message.from_user.id,
-                        symptoms="Лабораторные анализы:\n" + ocr_text[:3000],
-                        response=response,
-                        triage_level=None
-                    )
-                    session_db.add(consultation)
-                    await session_db.commit()
-            except Exception as db_err:
-                logger.error(f"Lab analysis DB save failed: {db_err}")
-
-            data_state = await state.get_data()
-            if not is_admin(message.from_user.id):
-                if data_state.get('using_free'):
-                    await use_free_analysis(message.from_user.id)
-                else:
-                    await increment_usage(message.from_user.id)
-
+            await _process_lab(message.from_user.id, message, state, image_data)
         except ValueError:
             await message.answer(
                 "⚠️ Не удалось распознать текст на фото.\n\n"
@@ -1151,6 +1149,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             await message.answer("⚠️ Что-то пошло не так. Попробуйте ещё раз.", reply_markup=get_main_keyboard())
         finally:
             await state.clear()
+
+    @dp.message(LabAnalysis.waiting_for_file, F.photo)
+    async def process_lab_file(message: types.Message, state: FSMContext):
+        await process_lab_file_from_id(message, message.photo[-1].file_id, state)
 
     @dp.message(LabAnalysis.waiting_for_file)
     async def lab_invalid_file(message: types.Message):
@@ -1366,17 +1368,13 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             await state.clear()
             return await safe_callback_answer(callback)
         await state.update_data(using_free=False, lab_package=0)
-        await state.set_state(LabAnalysis.waiting_for_file)
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
         except Exception:
             pass
-        await callback.message.answer(
-            "🔬 **Расшифровка анализов**\n\n"
-            "Отправьте **фото** лабораторных результатов, и я расшифрую их.\n\n"
-            "📸 Если вы уже отправили фото выше — отправьте его ещё раз.",
-        )
         await safe_callback_answer(callback)
+        # Forward to lab processor with saved file_id
+        await process_lab_file_from_id(callback.message, file_id, state)
 
     @dp.callback_query(WaitingPhotoType.choosing, F.data == "photo_type_handwriting")
     async def photo_type_handwriting(callback: types.CallbackQuery, state: FSMContext):
@@ -1387,17 +1385,13 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             await state.clear()
             return await safe_callback_answer(callback)
         await state.update_data(using_free=False)
-        await state.set_state(HandwritingAnalysis.waiting_for_photo)
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
         except Exception:
             pass
-        await callback.message.answer(
-            "✍️ **Анализ почерка**\n\n"
-            "Отправьте **фото** рукописного текста, и я распознаю его.\n\n"
-            "📸 Если вы уже отправили фото выше — отправьте его ещё раз.",
-        )
         await safe_callback_answer(callback)
+        # Forward to handwriting processor with saved file_id
+        await process_handwriting_from_id(callback.from_user.id, callback.message, file_id, state)
 
     @dp.message(F.voice | F.video | F.video_note | F.animation)
     async def unsupported_media(message: types.Message):
