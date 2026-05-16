@@ -1304,7 +1304,10 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     async def photo_without_context(message: types.Message):
         await message.answer(
             "📸 **Фото получено**\n\n"
-            "Чтобы проанализировать фото, нажмите **«✍️ Анализ почерка»** в меню.",
+            "Выберите, что хотите сделать:\n"
+            "• **🔬 Расшифровка анализов** — разобрать бланк с анализами\n"
+            "• **✍️ Анализ почерка** — распознать рукописный текст\n\n"
+            "Нажмите нужную кнопку в меню 👇",
             reply_markup=get_main_keyboard(),
         )
 
