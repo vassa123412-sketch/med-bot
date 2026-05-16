@@ -272,12 +272,12 @@ class LLMClient:
 
     async def query(self, prompt: str) -> str:
         """Query LLM with full redundancy:
-        Gemini (primary, лимит может быть исчерпан)
-          → OpenRouter DeepSeek V4 Flash (fallback 1)
+        OpenRouter DeepSeek V4 Flash (primary — самый детальный, клинический стиль)
+          → Gemini 2.0 Flash (fallback 1 — если DeepSeek не ответил)
             → OpenCode Zen Big Pickle (fallback 2, бесплатно)"""
         providers = [
-            ("Gemini", self.query_gemini),
             ("OpenRouter", self.query_openrouter),
+            ("Gemini", self.query_gemini),
             ("OpenCode Zen", self.query_opencode_zen),
         ]
         last_error = None
