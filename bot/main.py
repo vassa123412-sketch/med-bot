@@ -1247,7 +1247,13 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         except Exception:
             pass
 
-        await callback.message.answer("⏳ Отправляю счёт...")
+        await callback.message.answer(
+            f"⏳ **Оплата {stars}⭐**\n\n"
+            "Сейчас придет счёт от Telegram. "
+            "Если не хватает Stars — купите их через @PremiumBot.\n\n"
+            "👉 [Купить Stars](https://t.me/PremiumBot)",
+            disable_web_page_preview=True,
+        )
         await bot.send_invoice(
             chat_id=callback.from_user.id,
             title=f"🔬 Расшифровка анализов ({package} шт)",

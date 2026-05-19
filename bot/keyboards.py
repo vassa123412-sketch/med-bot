@@ -197,6 +197,9 @@ def get_payment_method_keyboard(package: int, pay_id: str) -> InlineKeyboardMark
                 InlineKeyboardButton(text="💳 Карта / СБП (Robokassa)", callback_data=f"pay_robokassa_{package}_{pay_id}"),
             ],
             [
+                InlineKeyboardButton(text="🪙 Купить Stars", url="https://t.me/PremiumBot"),
+            ],
+            [
                 InlineKeyboardButton(text="🔙 В меню", callback_data="lab_back_to_menu"),
             ],
         ]
