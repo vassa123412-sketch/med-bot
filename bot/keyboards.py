@@ -186,11 +186,15 @@ def get_lab_result_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def get_payment_keyboard(pay_id: str) -> InlineKeyboardMarkup:
+def get_payment_method_keyboard(package: int, pay_id: str) -> InlineKeyboardMarkup:
+    stars = STARS_PRICES.get(package, 5)
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="⏳ Оплата временно недоступна", callback_data="noop"),
+                InlineKeyboardButton(text=f"⭐ Оплатить Stars ({stars}⭐)", callback_data=f"pay_stars_{package}_{pay_id}"),
+            ],
+            [
+                InlineKeyboardButton(text="💳 Карта / СБП (Robokassa)", callback_data=f"pay_robokassa_{package}_{pay_id}"),
             ],
             [
                 InlineKeyboardButton(text="🔙 В меню", callback_data="lab_back_to_menu"),

@@ -3,7 +3,7 @@ import logging
 import sys
 import os
 from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
-from aiogram.types import FSInputFile, LabeledPrice, PreCheckoutQuery
+from aiogram.types import FSInputFile, LabeledPrice, PreCheckoutQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
@@ -20,7 +20,7 @@ from bot.keyboards import (
     get_gender_keyboard, get_age_keyboard, get_result_keyboard, get_back_to_menu_keyboard,
     get_handwriting_result_keyboard,
     get_admin_keyboard, get_lab_pricing_keyboard, get_lab_result_keyboard,
-    get_photo_type_keyboard, get_legal_keyboard, STARS_PRICES,
+    get_photo_type_keyboard, get_legal_keyboard, get_payment_method_keyboard, STARS_PRICES,
 )
 from bot.states import SymptomAnalysis, HandwritingAnalysis, LabAnalysis, AdminActions, LabPayment, WaitingPhotoType
 from reports.pdf_generator import create_pdf_report, create_lab_pdf_report
@@ -1226,23 +1226,77 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
         await state.update_data(lab_package=package, payment_pay_id=payment.pay_id)
 
+        await callback.message.answer(
+            f"🔬 **Пакет: {package} {'анализ' if package == 1 else 'анализов'}**\n\n"
+            "Выберите способ оплаты:",
+            reply_markup=get_payment_method_keyboard(package, payment.pay_id),
+        )
+        await safe_callback_answer(callback)
+
+    # --- Payment method: Telegram Stars ---
+
+    @dp.callback_query(F.data.startswith("pay_stars_"))
+    async def pay_stars(callback: types.CallbackQuery, state: FSMContext):
+        parts = callback.data.split("_")
+        package = int(parts[2])
+        pay_id = parts[3]
+        stars = STARS_PRICES.get(package, 5)
+
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
-        except Exception as e:
-            logger.warning(f"edit_reply_markup (lab_pricing): {e}")
+        except Exception:
+            pass
 
-        # Send Telegram Stars invoice
-        await callback.message.answer(
-            "⏳ Отправляю счёт для оплаты...",
-        )
+        await callback.message.answer("⏳ Отправляю счёт...")
         await bot.send_invoice(
             chat_id=callback.from_user.id,
             title=f"🔬 Расшифровка анализов ({package} шт)",
             description=f"Пакет из {package} расшифровок лабораторных анализов.\n"
                         "Включает: AI-расшифровку, PDF-отчёт, рекомендации.",
-            payload=f"lab_{package}_{payment.pay_id}",
+            payload=f"lab_{package}_{pay_id}",
             currency="XTR",
             prices=[LabeledPrice(label=f"🔬 {package} {'анализ' if package == 1 else 'анализов'}", amount=stars)],
+        )
+        await safe_callback_answer(callback)
+
+    # --- Payment method: Robokassa ---
+
+    @dp.callback_query(F.data.startswith("pay_robokassa_"))
+    async def pay_robokassa(callback: types.CallbackQuery, state: FSMContext):
+        from core.robokassa import robokassa
+
+        parts = callback.data.split("_")
+        package = int(parts[2])
+        pay_id = parts[3]
+        amount = float(STARS_PRICES.get(package, 5))
+        inv_id = int(hash(pay_id) % 1000000)  # numeric ID for Robokassa
+
+        if not robokassa.is_configured():
+            await callback.message.answer(
+                "❌ **Оплата через Robokassa временно недоступна.**\n\n"
+                "Платежный шлюз настраивается. Используйте Telegram Stars ⭐\n"
+                "или попробуйте позже.",
+                reply_markup=get_main_keyboard(),
+            )
+            await safe_callback_answer(callback)
+            return
+
+        payment_url = robokassa.generate_payment_url(inv_id, amount)
+        if robokassa.login.startswith("@"):
+            # Test mode until activation
+            payment_url += "&IsTest=1"
+
+        await callback.message.answer(
+            f"💳 **Оплата через Robokassa**\n\n"
+            f"📦 Пакет: **{package}** {'анализ' if package == 1 else 'анализов'}\n"
+            f"💰 Сумма: **{amount:.2f}**\n\n"
+            f"Нажмите кнопку ниже для оплаты картой или СБП:",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text="💳 Перейти к оплате", url=payment_url)],
+                    [InlineKeyboardButton(text="🔙 В меню", callback_data="lab_back_to_menu")],
+                ]
+            ),
         )
         await safe_callback_answer(callback)
 
