@@ -20,7 +20,7 @@ from bot.keyboards import (
     get_gender_keyboard, get_age_keyboard, get_result_keyboard, get_back_to_menu_keyboard,
     get_handwriting_result_keyboard,
     get_admin_keyboard, get_lab_pricing_keyboard, get_lab_result_keyboard,
-    get_photo_type_keyboard, STARS_PRICES,
+    get_photo_type_keyboard, get_legal_keyboard, STARS_PRICES,
 )
 from bot.states import SymptomAnalysis, HandwritingAnalysis, LabAnalysis, AdminActions, LabPayment, WaitingPhotoType
 from reports.pdf_generator import create_pdf_report, create_lab_pdf_report
@@ -147,6 +147,14 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "• Травмы головы/позвоночника\n\n"
             "⚠️ **Не ждите — звоните сразу!**",
             reply_markup=get_main_keyboard(),
+        )
+
+    @dp.message(F.text == "📋 Правовая информация")
+    async def cmd_legal(message: types.Message):
+        await message.answer(
+            "📋 **Правовая информация**\n\n"
+            "Выберите документ для ознакомления:",
+            reply_markup=get_legal_keyboard(),
         )
 
     # --- Admin Commands ---
@@ -773,6 +781,161 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
     @dp.callback_query(F.data == "back_to_menu")
     async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
+        await state.clear()
+        await callback.message.answer("🩺 Вернулись в меню. Чем помочь?", reply_markup=get_main_keyboard())
+        await safe_callback_answer(callback)
+
+    # --- Legal info callbacks ---
+
+    @dp.callback_query(F.data == "legal_terms")
+    async def legal_terms(callback: types.CallbackQuery):
+        text = (
+            "📄 **Публичная оферта (Пользовательское соглашение)**\n\n"
+            "*Последнее обновление:* 16.05.2026\n\n"
+            "**1. Общие положения**\n"
+            "1.1. Настоящая Оферта регулирует порядок заключения Договора "
+            "информационно-консультативных услуг через Telegram-бота "
+            "«МедАссистент» (@Med24AssistantBot) (далее — «Сервис»).\n"
+            "1.2. Использование Сервиса означает безоговорочный акцепт "
+            "условий настоящей Оферты.\n\n"
+            "**2. Термины**\n"
+            "• **Договор** — текст Оферты, акцептованный Заказчиком\n"
+            "• **Исполнитель** — Самозанятый, ИНН 519047822108\n"
+            "• **Заказчик** — дееспособное лицо, использующее Сервис\n"
+            "• **Услуга** — информационно-консультативные услуги\n\n"
+            "**3. Предмет Договора**\n"
+            "3.1. Исполнитель оказывает информационно-консультационные "
+            "услуги, Заказчик оплачивает их.\n"
+            "3.2. Услуги могут оказываться с привлечением третьих лиц "
+            "(LLM-провайдеров, OCR-сервисов).\n"
+            "3.3. Акцепт — начало использования Сервиса, отправка "
+            "заявки и/или оплата.\n\n"
+            "**4. Права и обязанности**\n"
+            "• Исполнитель: анализирует данные, отвечает, описывает "
+            "риски, оказывает услуги качественно и в срок\n"
+            "• Заказчик: предоставляет достоверные данные, оплачивает "
+            "услуги, принимает условия без оговорок\n\n"
+            "**5. Цена и оплата**\n"
+            "• Стоимость определяется в Сервисе (Telegram Stars / Robokassa)\n"
+            "• Расчеты — в безналичном порядке\n\n"
+            "**6. Возврат средств**\n"
+            "• По Закону «О защите прав потребителей» № 2300-1\n"
+            "• На основании претензии, срок ответа — 10 рабочих дней\n\n"
+            "**7. Конфиденциальность**\n"
+            "• Данные защищаются по ФЗ №152 и №149\n"
+            "• Стороны сохраняют конфиденциальность полученной информации\n\n"
+            "**8. Форс-мажор**\n"
+            "• Стороны освобождаются от ответственности при "
+            "непреодолимой силе\n"
+            "• Уведомление — в течение 30 рабочих дней\n\n"
+            "**9. Ответственность**\n"
+            "• По условиям Оферты и законодательству РФ\n"
+            "• Нарушитель возмещает убытки\n\n"
+            "**10. Срок действия**\n"
+            "• Оферта действует с момента размещения в Сервисе\n"
+            "• Исполнитель может изменять условия с уведомлением "
+            "через Сервис\n"
+            "• Договор действует до исполнения обязательств\n\n"
+            "**11. Споры**\n"
+            "• Регулируются законодательством РФ\n"
+            "• Досудебный порядок обязателен\n\n"
+            "**12. Реквизиты Исполнителя**\n"
+            "📌 Самозанятый\n"
+            "📌 ИНН: 519047822108\n"
+            "📞 +7 917 268-89-34\n"
+            "📧 vudd049@gmail.com\n\n"
+            "---\n"
+            "*Используя Сервис, вы принимаете условия Оферты. "
+            "Информация носит справочный характер. "
+            "Это не диагноз и не лечение. Обратитесь к врачу.*"
+        )
+        try:
+            await callback.message.edit_text(text, reply_markup=get_legal_keyboard())
+        except Exception:
+            await callback.message.answer(text, reply_markup=get_legal_keyboard())
+        await safe_callback_answer(callback)
+
+    @dp.callback_query(F.data == "legal_privacy")
+    async def legal_privacy(callback: types.CallbackQuery):
+        text = (
+            "🔒 **Политика конфиденциальности**\n\n"
+            "*Последнее обновление:* 30.04.2026\n\n"
+            "**1. Оператор персональных данных**\n"
+            "Telegram-бот «МедАссистент» (@Med24AssistantBot).\n\n"
+            "**2. Какие данные мы собираем**\n"
+            "• Telegram ID — идентификация\n"
+            "• Имя пользователя — персонализация\n"
+            "• Симптомы, результаты анализов — предоставление услуг\n"
+            "• Возраст, пол — точность анализа\n"
+            "• История консультаций — история взаимодействий\n\n"
+            "**3. Цель обработки**\n"
+            "Предоставление информационно-справочных материалов, улучшения Сервиса.\n\n"
+            "**4. Правовое основание**\n"
+            "Ст. 6 ФЗ №152 — согласие субъекта; "
+            "ст. 10 ФЗ №152 — явное согласие на обработку медицинских данных.\n\n"
+            "**5. Хранение данных**\n"
+            "• Данные граждан РФ хранятся на территории РФ\n"
+            "• Срок: до отзыва согласия\n"
+            "• Шифрование: AES-256 (хранение), TLS 1.3 (передача)\n\n"
+            "**6. Права пользователя**\n"
+            "Доступ, исправление, удаление, отзыв согласия.\n\n"
+            "**7. Передача третьим лицам**\n"
+            "Не продаём. LLM-провайдерам — в анонимизированном виде.\n\n"
+            "**8. Контакты**\n"
+            "По вопросам обработки данных — через бота."
+        )
+        try:
+            await callback.message.edit_text(text, reply_markup=get_legal_keyboard())
+        except Exception:
+            await callback.message.answer(text, reply_markup=get_legal_keyboard())
+        await safe_callback_answer(callback)
+
+    @dp.callback_query(F.data == "legal_disclaimer")
+    async def legal_disclaimer(callback: types.CallbackQuery):
+        text = (
+            "⚕️ **Медицинский дисклеймер**\n\n"
+            "**Минимальный (в каждом ответе):**\n"
+            "⚠️ Информация носит справочный характер. Это не диагноз "
+            "и не назначение лечения. Обратитесь к врачу.\n\n"
+            "**Полный (при первом использовании):**\n"
+            "⚠️ Данный бот предоставляет информационно-справочные материалы. "
+            "Информация не заменяет профессиональную медицинскую консультацию, "
+            "диагностику или лечение. Постановка диагноза и назначение лечения "
+            "осуществляются только врачом при очном приёме. В случае экстренной "
+            "ситуации немедленно вызовите скорую по телефону **103** или **112**.\n\n"
+            "**Для PDF-заключений:**\n"
+            "⚠️ Заключение носит информационно-справочный характер и не является "
+            "медицинским диагнозом или назначением лечения.\n\n"
+            "**Экстренная помощь:**\n"
+            "📞 103 — Скорая помощь\n"
+            "📞 112 — Единая служба спасения"
+        )
+        try:
+            await callback.message.edit_text(text, reply_markup=get_legal_keyboard())
+        except Exception:
+            await callback.message.answer(text, reply_markup=get_legal_keyboard())
+        await safe_callback_answer(callback)
+
+    @dp.callback_query(F.data == "legal_support")
+    async def legal_support(callback: types.CallbackQuery):
+        text = (
+            "📞 **Контакты и поддержка**\n\n"
+            "**Исполнитель:** Самозанятый\n"
+            "**ИНН:** 519047822108\n\n"
+            "📞 **Телефон:** +7 917 268-89-34\n"
+            "📧 **Email:** vudd049@gmail.com\n\n"
+            "Если у вас возникли вопросы по работе Сервиса, "
+            "оплате или возврату — обращайтесь по указанным контактам.\n\n"
+            "⏰ Ответ в течение 24 часов."
+        )
+        try:
+            await callback.message.edit_text(text, reply_markup=get_legal_keyboard())
+        except Exception:
+            await callback.message.answer(text, reply_markup=get_legal_keyboard())
+        await safe_callback_answer(callback)
+
+    @dp.callback_query(F.data == "legal_back")
+    async def legal_back(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
         await callback.message.answer("🩺 Вернулись в меню. Чем помочь?", reply_markup=get_main_keyboard())
         await safe_callback_answer(callback)

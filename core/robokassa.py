@@ -1,8 +1,7 @@
 """
 Robokassa payment gateway client.
 
-Placeholder until registration is complete.
-When ready: fill .env with ROBOKASSA_LOGIN, ROBOKASSA_PASSWORD1, ROBOKASSA_PASSWORD2
+Configured via .env: ROBOKASSA_LOGIN, ROBOKASSA_PASSWORD1, ROBOKASSA_PASSWORD2
 """
 import hashlib
 import logging
@@ -91,4 +90,10 @@ def base64url_encode(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).decode().rstrip("=")
 
 
-robokassa = RobokassaClient()
+from core.config import settings
+
+robokassa = RobokassaClient(
+    login=settings.robokassa_login,
+    password1=settings.robokassa_password1,
+    password2=settings.robokassa_password2,
+)

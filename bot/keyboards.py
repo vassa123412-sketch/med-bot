@@ -6,10 +6,33 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text="🔍 Анализ симптомов"), KeyboardButton(text="🔬 Расшифровка анализов")],
             [KeyboardButton(text="✍️ Анализ почерка"), KeyboardButton(text="🎁 Бесплатный анализ")],
-            [KeyboardButton(text="🚑 Экстренная помощь")],
+            [KeyboardButton(text="🚑 Экстренная помощь"), KeyboardButton(text="📋 Правовая информация")],
         ],
         resize_keyboard=True,
         input_field_placeholder="Выберите действие 👇"
+    )
+    return keyboard
+
+
+def get_legal_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📄 Пользовательское соглашение", callback_data="legal_terms"),
+            ],
+            [
+                InlineKeyboardButton(text="🔒 Политика конфиденциальности", callback_data="legal_privacy"),
+            ],
+    [
+        InlineKeyboardButton(text="⚕️ Медицинский дисклеймер", callback_data="legal_disclaimer"),
+    ],
+    [
+        InlineKeyboardButton(text="📞 Контакты и поддержка", callback_data="legal_support"),
+    ],
+    [
+        InlineKeyboardButton(text="🔙 В меню", callback_data="legal_back"),
+    ],
+        ]
     )
     return keyboard
 
