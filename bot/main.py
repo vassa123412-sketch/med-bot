@@ -97,7 +97,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
                     if referral_code:
                         await process_referral(message.from_user.id, referral_code)
                         free_count = await get_free_analyses(message.from_user.id)
-                        extras = "\n\n🎁 **Вам начислен 1 бесплатный анализ по реферальной ссылке!**" if free_count > 0 else ""
+                        extras = "\n\n🎁 <b>Вам начислен 1 бесплатный анализ по реферальной ссылке!</b>" if free_count > 0 else ""
                 else:
                     await session_db.execute(update(User).where(User.telegram_id == message.from_user.id).values(username=message.from_user.username, first_name=message.from_user.first_name))
                     await session_db.commit()
@@ -106,16 +106,17 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             logger.error(f"Error saving user: {e}")
             extras = ""
         await message.answer(
-            "🔬 **Демо медицинского AI-бота**\n\n"
+            "🔬 <b>Демо медицинского AI-бота</b>\n\n"
             "Этот бот показывает, как работает искусственный интеллект в медицине:\n\n"
             "🔍 Анализ симптомов — опишите жалобы, получите разбор\n"
             "✍️ Распознавание почерка — AI расшифрует рукописный текст\n"
             "🎁 Бесплатный доступ — протестируйте все функции\n\n"
-            "💼 **Хотите такой же бот для вашего бизнеса?**\n"
+            "💼 <b>Хотите такой же бот для вашего бизнеса?</b>\n"
             "👉 @Ivan_Zadov — разработка Telegram-ботов под ключ\n\n"
-            "⚠️ *Результаты не являются медицинским диагнозом.*"
+            "⚠️ <i>Результаты не являются медицинским диагнозом.</i>"
             f"{extras}",
             reply_markup=get_main_keyboard(),
+            parse_mode="HTML",
         )
 
     @dp.message(Command("help"))
