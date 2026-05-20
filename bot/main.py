@@ -80,6 +80,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         await state.clear()
 
         referral_code = None
+        extras = ""
         args = message.text.split()
         if len(args) > 1 and args[1].startswith("ref_"):
             referral_code = args[1]
@@ -101,7 +102,6 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
                 else:
                     await session_db.execute(update(User).where(User.telegram_id == message.from_user.id).values(username=message.from_user.username, first_name=message.from_user.first_name))
                     await session_db.commit()
-                    extras = ""
         except Exception as e:
             logger.error(f"Error saving user: {e}")
             extras = ""
@@ -109,10 +109,9 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "🔬 <b>Демо медицинского AI-бота</b>\n\n"
             "Этот бот показывает, как работает искусственный интеллект в медицине:\n\n"
             "🔍 Анализ симптомов — опишите жалобы, получите разбор\n"
+            "🔬 Расшифровка анализов — пришлите фото, получите разбор\n"
             "✍️ Распознавание почерка — AI расшифрует рукописный текст\n"
             "🎁 Бесплатный доступ — протестируйте все функции\n\n"
-            "💼 <b>Хотите такой же бот для вашего бизнеса?</b>\n"
-            "👉 @Ivan_Zadov — разработка Telegram-ботов под ключ\n\n"
             "⚠️ <i>Результаты не являются медицинским диагнозом.</i>"
             f"{extras}",
             reply_markup=get_main_keyboard(),
