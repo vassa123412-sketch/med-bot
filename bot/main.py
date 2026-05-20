@@ -20,7 +20,7 @@ from bot.keyboards import (
     get_gender_keyboard, get_age_keyboard, get_result_keyboard, get_back_to_menu_keyboard,
     get_handwriting_result_keyboard,
     get_admin_keyboard, get_lab_pricing_keyboard, get_lab_result_keyboard,
-    get_photo_type_keyboard, get_legal_keyboard, get_payment_method_keyboard, STARS_PRICES,
+    get_photo_type_keyboard, get_legal_keyboard, get_payment_method_keyboard, STARS_PRICES, RUBLE_PRICES,
 )
 from bot.states import SymptomAnalysis, HandwritingAnalysis, LabAnalysis, AdminActions, LabPayment, WaitingPhotoType
 from reports.pdf_generator import create_pdf_report, create_lab_pdf_report
@@ -1215,19 +1215,20 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
     @dp.callback_query(F.data.startswith("lab_pricing_"))
     async def lab_pricing_selection(callback: types.CallbackQuery, state: FSMContext):
         package = int(callback.data.split("_")[2])
-        stars = STARS_PRICES.get(package, 5)
+        rub = RUBLE_PRICES.get(package, 50)
 
         # Create payment record
         payment = await create_payment_record(
             user_id=callback.from_user.id,
-            amount=stars,
+            amount=rub,
             package_size=package,
         )
 
         await state.update_data(lab_package=package, payment_pay_id=payment.pay_id)
 
+        label = "анализ" if package == 1 else "анализа" if package in (2, 3, 4) else "анализов"
         await callback.message.answer(
-            f"🔬 **Пакет: {package} {'анализ' if package == 1 else 'анализов'}**\n\n"
+            f"🔬 **Пакет: {package} {label}**\n\n"
             "Выберите способ оплаты:",
             reply_markup=get_payment_method_keyboard(package, payment.pay_id),
         )
@@ -1240,7 +1241,8 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         parts = callback.data.split("_")
         package = int(parts[2])
         pay_id = parts[3]
-        stars = STARS_PRICES.get(package, 5)
+        stars = STARS_PRICES.get(package, 30)
+        rub = RUBLE_PRICES.get(package, 50)
 
         try:
             await callback.message.edit_reply_markup(reply_markup=None)
@@ -1248,7 +1250,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             pass
 
         await callback.message.answer(
-            f"⏳ **Оплата {stars}⭐**\n\n"
+            f"⏳ **Оплата {stars}⭐ ({rub}₽)**\n\n"
             "Сейчас придет счёт от Telegram. "
             "Если не хватает Stars — купите их через @PremiumBot.\n\n"
             "👉 [Купить Stars](https://t.me/PremiumBot)",
@@ -1261,7 +1263,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
                         "Включает: AI-расшифровку, PDF-отчёт, рекомендации.",
             payload=f"lab_{package}_{pay_id}",
             currency="XTR",
-            prices=[LabeledPrice(label=f"🔬 {package} {'анализ' if package == 1 else 'анализов'}", amount=stars)],
+            prices=[LabeledPrice(label=f"🔬 {package} {'анализ' if package == 1 else 'анализа' if package in (2,3,4) else 'анализов'}", amount=stars)],
         )
         await safe_callback_answer(callback)
 
@@ -1274,7 +1276,8 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
         parts = callback.data.split("_")
         package = int(parts[2])
         pay_id = parts[3]
-        amount = float(STARS_PRICES.get(package, 5))
+        rub = RUBLE_PRICES.get(package, 50)
+        amount = float(rub)
         inv_id = int(hash(pay_id) % 1000000)  # numeric ID for Robokassa
 
         if not robokassa.is_configured():
@@ -1294,7 +1297,7 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
 
         await callback.message.answer(
             f"💳 **Оплата через Robokassa**\n\n"
-            f"📦 Пакет: **{package}** {'анализ' if package == 1 else 'анализов'}\n"
+            f"📦 Пакет: **{package}** {'анализ' if package == 1 else 'анализа' if package in (2,3,4) else 'анализов'}\n"
             f"💰 Сумма: **{amount:.2f}**\n\n"
             f"Нажмите кнопку ниже для оплаты картой или СБП:",
             reply_markup=InlineKeyboardMarkup(
@@ -1326,8 +1329,8 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
                     await message.answer(
                         f"✅ **Оплата прошла успешно!**\n\n"
                         f"📦 Пакет: **{payment.package_size}** {'анализ' if payment.package_size == 1 else 'анализов'}\n"
-                        f"⭐ Сумма: **{payment.amount} Stars**\n"
-                        f"📊 Ваш баланс: **{bal}** {'анализ' if bal == 1 else 'анализов'}\n\n"
+                        f"💰 Сумма: **{payment.amount} ₽**\n"
+                        f"📊 Ваш баланс: **{bal}** {'анализ' if bal == 1 else 'анализа' if bal in (2,3,4) else 'анализов'}\n\n"
                         "🔬 Отправьте фото бланка анализов, чтобы начать!",
                         reply_markup=get_main_keyboard(),
                     )

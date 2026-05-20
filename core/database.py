@@ -49,7 +49,7 @@ class Payment(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, nullable=False)
     amount = Column(Integer, nullable=False)
-    package_size = Column(Integer, nullable=False)   # 1, 3, 10
+    package_size = Column(Integer, nullable=False)   # 1, 2, 10
     pay_id = Column(String(64), unique=True, nullable=False)
     status = Column(String(20), default="pending")   # pending | paid | cancelled
     created_at = Column(DateTime, server_default=func.now())

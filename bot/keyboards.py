@@ -149,19 +149,20 @@ def get_handwriting_result_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
-STARS_PRICES = {1: 5, 3: 10, 10: 25}
+STARS_PRICES = {1: 30, 2: 60, 10: 120}
+RUBLE_PRICES = {1: 50, 2: 99, 10: 199}
 
 def get_lab_pricing_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="🔬 1 анализ — ⭐5", callback_data="lab_pricing_1"),
+                InlineKeyboardButton(text="🔬 1 анализ — 50₽ (⭐30)", callback_data="lab_pricing_1"),
             ],
             [
-                InlineKeyboardButton(text="🔥 3 анализа — ⭐10", callback_data="lab_pricing_3"),
+                InlineKeyboardButton(text="🔥 2 анализа — 99₽ (⭐60)", callback_data="lab_pricing_2"),
             ],
             [
-                InlineKeyboardButton(text="💎 10 анализов — ⭐25", callback_data="lab_pricing_10"),
+                InlineKeyboardButton(text="💎 10 анализов — 199₽ (⭐120)", callback_data="lab_pricing_10"),
             ],
             [
                 InlineKeyboardButton(text="🔙 В меню", callback_data="lab_back_to_menu"),
@@ -187,14 +188,15 @@ def get_lab_result_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_payment_method_keyboard(package: int, pay_id: str) -> InlineKeyboardMarkup:
-    stars = STARS_PRICES.get(package, 5)
+    stars = STARS_PRICES.get(package, 30)
+    rub = RUBLE_PRICES.get(package, 50)
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(text=f"⭐ Оплатить Stars ({stars}⭐)", callback_data=f"pay_stars_{package}_{pay_id}"),
             ],
             [
-                InlineKeyboardButton(text="💳 Карта / СБП (Robokassa)", callback_data=f"pay_robokassa_{package}_{pay_id}"),
+                InlineKeyboardButton(text=f"💳 Карта / СБП ({rub}₽)", callback_data=f"pay_robokassa_{package}_{pay_id}"),
             ],
             [
                 InlineKeyboardButton(text="🪙 Купить Stars", url="https://t.me/PremiumBot"),
