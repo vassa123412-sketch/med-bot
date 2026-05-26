@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}МедАссистент — расшифровка анализов через Telegram с ИИ{% endblock %}
+{% block content %}
+
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <span class="hero-badge">🤖 ИИ-расшифровка</span>
+            <h1 class="hero-title">
+                Ваши анализы —<br>
+                <span>понятным языком</span>
+            </h1>
+            <p class="hero-sub">
+                Отправьте фото результатов анализов в Telegram-бота — 
+                искусственный интеллект расшифрует их за секунду. 
+                Без регистраций, без очередей, без лишних слов.
+            </p>
+            <div class="hero-cta">
+                <a href="https://t.me/Med24AssistantBot" class="btn btn-primary btn-lg">
+                    🚀 Открыть бота
+                </a>
+                <a href="/#features" class="btn btn-outline btn-lg">
+                    Как работает
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-num">2 мин</span>
+                    <span class="stat-label">среднее время ответа</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num">30 ⭐</span>
+                    <span class="stat-label">стоимость 1 анализа</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num">24/7</span>
+                    <span class="stat-label">круглосуточно</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-img">
+                <span class="hero-avatar">🩺</span>
+                <div class="hero-speech">
+                    «Ваш анализ крови в норме. 
+                    Гемоглобин — 138 г/л, лейкоциты — 6.2, 
+                    СОЭ — 12 мм/ч. 
+                    Рекомендуем показать结果 терапевту.»
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <h2>Как это работает</h2>
+            <p>Три простых шага — и вы понимаете свои анализы</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">📸</span>
+                <h3>Сфотографируйте</h3>
+                <p>
+                    Сделайте фото бланка анализов или скриншот из 
+                    личного кабинета. Отправьте в Telegram-бота.
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🧠</span>
+                <h3>ИИ анализирует</h3>
+                <p>
+                    Передовые нейросети распознают показатели, 
+                    сверяют с референсными значениями и готовят 
+                    понятное заключение.
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📋</span>
+                <h3>Получите разбор</h3>
+                <p>
+                    Чёткая структура: что в норме, что отклоняется, 
+                    насколько критично и к какому врачу стоит 
+                    обратиться.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt" id="pricing">
+    <div class="container">
+        <div class="section-header">
+            <h2>Стоимость</h2>
+            <p>Выбирайте пакет под свои задачи. Оплата — Telegram Stars.</p>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>1 анализ</h3>
+                <div class="pricing-price">30 ⭐</div>
+                <p class="pricing-desc">≈ 50 ₽</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> Полный разбор показателей</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Рекомендации по специалисту</li>
+                    <li><span class="check">✓</span> Без ограничения фото</li>
+                </ul>
+                <a href="https://t.me/Med24AssistantBot" class="btn btn-outline">Начать ⭐</a>
+            </div>
+            <div class="pricing-card popular">
+                <span class="pricing-badge">🔥 Выбор</span>
+                <h3>2 анализа</h3>
+                <div class="pricing-price">60 ⭐</div>
+                <p class="pricing-desc">≈ 99 ₽ (экономия 1 ₽)</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> 2 полноценных расшифровки</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Рекомендации по специалисту</li>
+                    <li><span class="check">✓</span> Без ограничения фото</li>
+                </ul>
+                <a href="https://t.me/Med24AssistantBot" class="btn btn-primary">Выбрать 🔥</a>
+            </div>
+            <div class="pricing-card">
+                <h3>10 анализов</h3>
+                <div class="pricing-price">120 ⭐</div>
+                <p class="pricing-desc">≈ 199 ₽ (экономия 301 ₽)</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> 10 расшифровок</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Рекомендации по специалисту</li>
+                    <li><span class="check">✓</span> Без ограничения фото</li>
+                </ul>
+                <a href="https://t.me/Med24AssistantBot" class="btn btn-outline">Купить ⭐</a>
+            </div>
+        </div>
+        <p style="text-align:center; color: var(--text-muted); font-size: .85rem; margin-top: 24px;">
+            Telegram Stars — внутренняя валюта Telegram. Купить можно в 
+            <a href="https://t.me/PremiumBot" style="color:var(--primary);">@PremiumBot</a>.
+        </p>
+    </div>
+</section>
+
+<section class="section" id="reviews">
+    <div class="container">
+        <div class="section-header">
+            <h2>Что говорят пользователи</h2>
+            <p>Реальные отзывы людей, которые уже пользуются сервисом</p>
+        </div>
+        <div class="reviews-grid">
+            <div class="review-card">
+                <div class="review-stars">★★★★★</div>
+                <p class="review-text">
+                    «Очень удобно. Сфоткал анализ крови — через минуту 
+                    получил разбор. Врач подтвердил, что всё верно. 
+                    Теперь только так проверяю.»
+                </p>
+                <div class="review-author">Анна</div>
+                <div class="review-role">Москва</div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">★★★★★</div>
+                <p class="review-text">
+                    «Не нужно гуглить каждый показатель. Бот сам всё 
+                    объясняет: что в норме, что нет. Экономит кучу 
+                    времени.»
+                </p>
+                <div class="review-author">Михаил</div>
+                <div class="review-role">Казань</div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">★★★★★</div>
+                <p class="review-text">
+                    «Покупала пакет на 10 анализов для всей семьи. 
+                    Хватает надолго. Ребёнку расшифровали — педиатр 
+                    сказал, что интерпретация точная.»
+                </p>
+                <div class="review-author">Елена</div>
+                <div class="review-role">Санкт-Петербург</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt" id="faq">
+    <div class="container">
+        <div class="section-header">
+            <h2>Частые вопросы</h2>
+        </div>
+        <div class="faq-list">
+            <div class="faq-item">
+                <button class="faq-question">
+                    Что такое Telegram Stars?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Telegram Stars — это внутренняя валюта Telegram. 
+                    Вы покупаете их в официальном боте @PremiumBot 
+                    через Apple/Google Pay или банковскую карту. 
+                    1 Star ≈ 1.5 рубля. Stars нельзя перевести обратно 
+                    в рубли — только потратить внутри Telegram.
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Как быстро приходит ответ?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Обычно 1-2 минуты. Бот работает круглосуточно. 
+                    Если бот «спит» (неактивен более 15 минут), 
+                    первый запрос может занять до 40 секунд — это 
+                    нормально для бесплатного хостинга.
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Можно ли доверять ИИ-расшифровке?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Бот даёт предварительную интерпретацию, основанную 
+                    на референсных значениях и медицинских базах знаний. 
+                    Результаты носят ознакомительный характер и не 
+                    заменяют консультацию врача. Всегда показывайте 
+                    результаты специалисту.
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Какие анализы поддерживаются?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Любые: клинический анализ крови, биохимия, 
+                    гормоны, моча, кал, спермограмма, ПЦР, 
+                    онкомаркеры, аллергопанели, витамины и 
+                    микроэлементы. Если бланк читаемый — бот 
+                    справится.
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Что если бот не распознал мой анализ?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Попробуйте сделать фото чётче: ровно, без бликов, 
+                    при хорошем освещении. Если проблема осталась — 
+                    напишите администратору @Ivan_Zabolotny, поможем.
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Как оформить возврат?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Напишите на med24assistant@gmail.com. 
+                    В ответе — в течение 5 рабочих дней. 
+                    Возврат — в течение 10 рабочих дней после 
+                    подтверждения. Возвращается полная сумма, 
+                    без вычета комиссий.
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Данные передаются третьим лицам?
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="faq-answer">
+                    Нет. Фото анализов обрабатываются нейросетью 
+                    и сразу удаляются с серверов. Мы не храним 
+                    и не передаём ваши медицинские данные. 
+                    Подробнее — в политике конфиденциальности.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <h2>Готовы попробовать?</h2>
+        <p>Откройте бота в Telegram и отправьте фото анализов — это бесплатно для первого запуска.</p>
+        <a href="https://t.me/Med24AssistantBot" class="btn btn-white btn-lg">
+            🚀 Перейти в Telegram-бота
+        </a>
+    </div>
+</section>
+
+{% endblock %}

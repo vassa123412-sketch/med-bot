@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}МедАссистент — расшифровка анализов с ИИ{% endblock %}</title>
+    <meta name="description" content="Мгновенная расшифровка медицинских анализов через Telegram. Искусственный интеллект анализирует ваши результаты и даёт понятное объяснение.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <span>🩺</span> МедАссистент
+            </a>
+            <button class="burger" onclick="document.querySelector('.navbar-links').classList.toggle('open')">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="navbar-links">
+                <a href="/#features">Возможности</a>
+                <a href="/#pricing">Цены</a>
+                <a href="/#faq">FAQ</a>
+                <a href="https://t.me/Med24AssistantBot" class="btn btn-primary btn-sm">Открыть бота</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <span class="brand-name">🩺 МедАссистент</span>
+                <p>ИИ-расшифровка медицинских анализов в Telegram. Быстро, понятно, конфиденциально.</p>
+            </div>
+            <div>
+                <h4>Сервис</h4>
+                <a href="https://t.me/Med24AssistantBot">Telegram-бот</a>
+                <a href="/#pricing">Тарифы</a>
+                <a href="/#faq">Частые вопросы</a>
+            </div>
+            <div>
+                <h4>Правовая информация</h4>
+                <a href="/legal">Документы</a>
+                <a href="/legal#terms">Пользовательское соглашение</a>
+                <a href="/legal#privacy">Политика конфиденциальности</a>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 — Заболотный Иван Валентинович, ИНН 519047822108</p>
+                <p style="margin-top:4px; font-size:.75rem;">Сервис не является медицинской организацией. Результаты не заменяют консультацию врача.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.parentElement.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>
