@@ -118,6 +118,17 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             parse_mode="HTML",
         )
 
+    @dp.message(Command("legal"))
+    async def cmd_legal_command(message: types.Message):
+        """Доступ к правовой информации через команду."""
+        from bot.keyboards import get_legal_keyboard
+        await message.answer(
+            "📋 <b>Правовая информация</b>\n\n"
+            "Полные документы доступны по кнопкам ниже:",
+            reply_markup=get_legal_keyboard(),
+            parse_mode="HTML",
+        )
+
     @dp.message(Command("help"))
     async def cmd_help(message: types.Message):
         await message.answer(
@@ -879,7 +890,6 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "Не продаём. Анонимизированные данные — LLM-провайдерам.\n"
             "Платёжные данные — через Telegram Stars и Robokassa.\n\n"
             "**8. Контакты**\n"
-            "📞 +7 917 268-89-34\n"
             "📧 vudd049@gmail.com\n"
             "Telegram: @Med24AssistantBot"
         )
@@ -922,12 +932,11 @@ def register_all_handlers(dp: Dispatcher, bot: Bot):
             "**Исполнитель:** Заболотный Иван Валентинович\n"
             "**Статус:** Самозанятый\n"
             "**ИНН:** 519047822108\n\n"
-            "📞 **Телефон:** +7 917 268-89-34\n"
             "📧 **Email:** vudd049@gmail.com\n\n"
             "Если у вас возникли вопросы по работе Сервиса, "
-            "оплате или возврату — обращайтесь по указанным контактам.\n\n"
+            "оплате или возврату — обращайтесь на email.\n\n"
             "⏰ Ответ в течение 24 часов.\n"
-            "📄 Полные документы размещены в боте."
+            "📄 Полные документы: команда /legal"
         )
         try:
             await callback.message.edit_text(text, reply_markup=get_legal_keyboard())

@@ -6,7 +6,7 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text="🔍 Анализ симптомов"), KeyboardButton(text="🔬 Расшифровка анализов")],
             [KeyboardButton(text="✍️ Анализ почерка"), KeyboardButton(text="🎁 Бесплатный анализ")],
-            [KeyboardButton(text="🚑 Экстренная помощь"), KeyboardButton(text="📋 Правовая информация")],
+            [KeyboardButton(text="🚑 Экстренная помощь")],
         ],
         resize_keyboard=True,
         input_field_placeholder="Выберите действие 👇"
