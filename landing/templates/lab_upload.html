@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Расшифровка анализов — загрузить фото — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="legal-section">
+    <div class="container">
+        <h1>🔬 Расшифровка лабораторных анализов</h1>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">
+            Загрузите фото или скан бланка анализов. ИИ распознает показатели 
+            и выдаст подробную расшифровку с пояснениями.
+        </p>
+
+        {% if error %}
+        <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #DC2626;">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="pricing-card" style="max-width: 500px; margin: 0 auto; text-align: left;">
+            <form method="POST" action="/analyze/lab" enctype="multipart/form-data">
+                <div style="margin-bottom: 24px; text-align: center;">
+                    <div style="font-size: 4rem; margin-bottom: 16px;">📸</div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 12px;">
+                        Выберите фото бланка анализов
+                    </label>
+                    <div style="border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px; cursor: pointer; text-align: center; transition: all .2s;"
+                         onclick="document.getElementById('fileInput').click()"
+                         onmouseover="this.style.borderColor='var(--primary)'"
+                         onmouseout="this.style.borderColor='var(--border)'"
+                         id="dropZone">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">📄</div>
+                        <p style="color: var(--text-muted); font-size: .9rem; margin: 0;">
+                            Нажмите, чтобы выбрать файл<br>
+                            <span style="font-size: .8rem;">JPG, PNG — до 10 МБ</span>
+                        </p>
+                        <p id="fileName" style="font-weight: 600; margin-top: 8px; display: none;"></p>
+                    </div>
+                    <input type="file" name="file" id="fileInput" accept="image/*" required
+                           style="display: none;"
+                           onchange="document.getElementById('fileName').textContent = this.files[0].name; document.getElementById('fileName').style.display = 'block';">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    🔬 Загрузить и выбрать тариф
+                </button>
+            </form>
+        </div>
+
+        <div style="max-width: 500px; margin: 32px auto 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; text-align: center;">
+            <div style="background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="font-size: 1.5rem; margin-bottom: 4px;">🖼️</div>
+                <div style="font-weight: 700;">1</div>
+                <div style="font-size: .8rem; color: var(--text-muted);">Загрузите фото</div>
+            </div>
+            <div style="background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="font-size: 1.5rem; margin-bottom: 4px;">💳</div>
+                <div style="font-weight: 700;">2</div>
+                <div style="font-size: .8rem; color: var(--text-muted);">Оплатите</div>
+            </div>
+            <div style="background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="font-size: 1.5rem; margin-bottom: 4px;">📋</div>
+                <div style="font-weight: 700;">3</div>
+                <div style="font-size: .8rem; color: var(--text-muted);">Получите разбор</div>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); font-size: .85rem; margin-top: 24px;">
+            ⚠️ Результат не является медицинским диагнозом. Обратитесь к врачу для консультации.
+        </p>
+    </div>
+</section>
+
+{% endblock %}

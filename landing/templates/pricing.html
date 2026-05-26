@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Цены — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>💰 Стоимость услуг</h2>
+            <p>Расшифровка анализов — от 50 ₽. Анализ симптомов — бесплатно.</p>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>🔍 Анализ симптомов</h3>
+                <div class="pricing-price">0 ₽</div>
+                <p class="pricing-desc">Бесплатно</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> Описание жалоб</li>
+                    <li><span class="check">✓</span> Выявление красных флагов</li>
+                    <li><span class="check">✓</span> Рекомендации</li>
+                    <li><span class="check">✓</span> Без ограничений</li>
+                </ul>
+                <a href="/analyze/symptoms" class="btn btn-outline" style="width:100%; justify-content:center;">
+                    🔍 Начать
+                </a>
+            </div>
+            <div class="pricing-card popular">
+                <span class="pricing-badge">🔥 Популярный</span>
+                <h3>🔬 Расшифровка анализов</h3>
+                <div class="pricing-price">от 50 ₽</div>
+                <p class="pricing-desc">за 1 анализ</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> Распознавание с фото</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Детальный разбор</li>
+                    <li><span class="check">✓</span> Рекомендации</li>
+                </ul>
+                <a href="/analyze/lab" class="btn btn-primary" style="width:100%; justify-content:center;">
+                    🔬 Загрузить анализы
+                </a>
+            </div>
+            <div class="pricing-card">
+                <h3>📦 Пакеты</h3>
+                <div class="pricing-price">199 ₽</div>
+                <p class="pricing-desc">10 анализов</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> 1 анализ — 50 ₽</li>
+                    <li><span class="check">✓</span> 2 анализа — 99 ₽</li>
+                    <li><span class="check">✓</span> 10 анализов — 199 ₽</li>
+                    <li><span class="check">✓</span> Оплата картой / СБП</li>
+                </ul>
+                <a href="/analyze/lab" class="btn btn-outline" style="width:100%; justify-content:center;">
+                    💳 Купить пакет
+                </a>
+            </div>
+        </div>
+
+        <div style="max-width: 500px; margin: 32px auto 0; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 24px;">
+            <h3 style="margin-bottom: 16px;">💳 Способы оплаты</h3>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <span style="padding: 8px 16px; background: var(--primary-light); border-radius: 50px; font-size: .85rem; font-weight: 600;">Visa</span>
+                <span style="padding: 8px 16px; background: var(--accent-light); border-radius: 50px; font-size: .85rem; font-weight: 600;">Mastercard</span>
+                <span style="padding: 8px 16px; background: var(--warning-light); border-radius: 50px; font-size: .85rem; font-weight: 600;">МИР</span>
+                <span style="padding: 8px 16px; background: var(--primary-light); border-radius: 50px; font-size: .85rem; font-weight: 600;">СБП</span>
+                <span style="padding: 8px 16px; background: var(--accent-light); border-radius: 50px; font-size: .85rem; font-weight: 600;">ЮMoney</span>
+                <span style="padding: 8px 16px; background: var(--primary-light); border-radius: 50px; font-size: .85rem; font-weight: 600;">Telegram Stars</span>
+            </div>
+            <p style="margin-top: 16px; font-size: .85rem; color: var(--text-muted);">
+                Все платежи защищены. Комиссия не взимается.
+            </p>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); font-size: .85rem; margin-top: 24px;">
+            Также доступен <a href="https://t.me/Med24AssistantBot" style="color: var(--primary);">Telegram-бот</a> с оплатой через Stars.
+        </p>
+    </div>
+</section>
+
+{% endblock %}

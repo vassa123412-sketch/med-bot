@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Оплата прошла — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="section">
+    <div class="container" style="text-align: center;">
+        <span style="font-size: 5rem; display: block; margin-bottom: 16px;">✅</span>
+        <h1 style="font-size: 2rem; font-weight: 900; margin-bottom: 12px;">Оплата прошла успешно!</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 32px;">
+            Спасибо! Сейчас начинаем обрабатывать ваши анализы.
+        </p>
+
+        {% if filename %}
+        <a href="/analyze/lab/process/{{ filename }}" class="btn btn-primary btn-lg">
+            🔬 Получить расшифровку
+        </a>
+        {% else %}
+        <a href="/analyze/lab" class="btn btn-primary btn-lg">
+            🔬 Загрузить анализы
+        </a>
+        {% endif %}
+
+        <p style="margin-top: 16px;">
+            <a href="/" class="btn btn-outline">🏠 На главную</a>
+        </p>
+    </div>
+</section>
+
+{% endblock %}

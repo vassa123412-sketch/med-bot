@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — результат — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <span style="font-size: 3rem; display: block; margin-bottom: 12px;">📋</span>
+            <h2>{{ title }}</h2>
+            <p>Результат анализа на основе ваших данных</p>
+        </div>
+
+        <div class="pricing-card" style="max-width: 700px; margin: 0 auto; text-align: left;">
+            <div style="white-space: pre-wrap; line-height: 1.7; font-size: .95rem;">
+                {{ result }}
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 32px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            {% if analysis_type == 'lab' %}
+            <a href="/analyze/lab" class="btn btn-primary">🔬 Ещё анализы</a>
+            {% elif analysis_type == 'symptoms' %}
+            <a href="/analyze/symptoms" class="btn btn-primary">🔍 Новый анализ</a>
+            {% endif %}
+            <a href="/" class="btn btn-outline">🏠 На главную</a>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); font-size: .85rem; margin-top: 24px;">
+            ⚠️ Результат не является медицинским диагнозом. <br>
+            Для постановки диагноза и назначения лечения обратитесь к врачу.
+        </p>
+    </div>
+</section>
+
+{% endblock %}

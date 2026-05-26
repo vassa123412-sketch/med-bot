@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Оплата не прошла — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="section">
+    <div class="container" style="text-align: center;">
+        <span style="font-size: 5rem; display: block; margin-bottom: 16px;">❌</span>
+        <h1 style="font-size: 2rem; font-weight: 900; margin-bottom: 12px;">Оплата не прошла</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 32px;">
+            Возможно, вы отменили платёж или произошла ошибка. Попробуйте ещё раз.
+        </p>
+        <p style="margin-bottom: 24px;">
+            Если проблема повторяется — напишите на <strong>med24assistant@gmail.com</strong>
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="/analyze/lab" class="btn btn-primary btn-lg">🔄 Попробовать снова</a>
+            <a href="/" class="btn btn-outline btn-lg">🏠 На главную</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

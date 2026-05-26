@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Ошибка — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="section">
+    <div class="container" style="text-align: center;">
+        <span style="font-size: 5rem; display: block; margin-bottom: 16px;">⚠️</span>
+        <h1 style="font-size: 2rem; font-weight: 900; margin-bottom: 12px;">Что-то пошло не так</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 32px;">
+            {{ error }}
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="javascript:history.back()" class="btn btn-primary btn-lg">🔙 Вернуться</a>
+            <a href="/" class="btn btn-outline btn-lg">🏠 На главную</a>
+        </div>
+        <p style="margin-top: 24px; font-size: .85rem; color: var(--text-muted);">
+            Если проблема повторяется — напишите на <strong>med24assistant@gmail.com</strong>
+        </p>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Выберите тариф — МедАссистент{% endblock %}
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <span style="font-size: 3rem; display: block; margin-bottom: 12px;">✅</span>
+            <h2>Фото загружено!</h2>
+            <p>Выберите пакет для расшифровки:</p>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>1 анализ</h3>
+                <div class="pricing-price">50 ₽</div>
+                <p class="pricing-desc">Разовая расшифровка</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> Полный разбор показателей</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Рекомендации по специалисту</li>
+                </ul>
+                <a href="/pay/robokassa/{{ filename }}/1" class="btn btn-outline" style="width:100%; justify-content:center;">
+                    💳 Оплатить 50 ₽
+                </a>
+            </div>
+            <div class="pricing-card popular">
+                <span class="pricing-badge">🔥 Выбор</span>
+                <h3>2 анализа</h3>
+                <div class="pricing-price">99 ₽</div>
+                <p class="pricing-desc">Экономия 1 ₽</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> 2 полноценных расшифровки</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Рекомендации по специалисту</li>
+                </ul>
+                <a href="/pay/robokassa/{{ filename }}/2" class="btn btn-primary" style="width:100%; justify-content:center;">
+                    💳 Оплатить 99 ₽
+                </a>
+            </div>
+            <div class="pricing-card">
+                <h3>10 анализов</h3>
+                <div class="pricing-price">199 ₽</div>
+                <p class="pricing-desc">Экономия 301 ₽</p>
+                <ul class="pricing-features">
+                    <li><span class="check">✓</span> 10 расшифровок</li>
+                    <li><span class="check">✓</span> Сравнение с референсами</li>
+                    <li><span class="check">✓</span> Рекомендации по специалисту</li>
+                </ul>
+                <a href="/pay/robokassa/{{ filename }}/10" class="btn btn-outline" style="width:100%; justify-content:center;">
+                    💳 Оплатить 199 ₽
+                </a>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted); font-size: .85rem; margin-top: 24px;">
+            🔒 Оплата через Robokassa. После оплаты вы сразу получите расшифровку.
+        </p>
+    </div>
+</section>
+
+{% endblock %}
